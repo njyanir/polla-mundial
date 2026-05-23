@@ -814,12 +814,6 @@ function renderCmp(){
 }
 renderScore();
 <\/script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
-}
-</script>
 </body>
 </html>`
 
@@ -911,6 +905,12 @@ function renderAll(){
 loadActuals()
 loadPlayers()
 renderAll()
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
 </script>
 </body>
 </html>
