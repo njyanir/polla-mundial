@@ -79,6 +79,22 @@
 
     .empty-hint { text-align: center; color: #475569; padding: 30px 0; font-size: 14px }
 
+    /* ── SIDE POT (SCOREBOARD) ── */
+    .score-cols { display: flex; gap: 14px; align-items: flex-start }
+    .score-main { flex: 1; min-width: 0 }
+    .score-side { width: 200px; flex-shrink: 0 }
+    @media(max-width: 600px) { .score-cols { flex-direction: column } .score-side { width: 100% } }
+    .sp-hdr { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 10px }
+    .sp-hdr::before, .sp-hdr::after { content: ''; flex: 1; height: 1px; background: #334155 }
+    .sp-card { display: flex; align-items: center; gap: 10px; background: #1e293b; border-radius: 12px; padding: 10px 13px; cursor: pointer; border-left: 4px solid var(--c); margin-bottom: 6px; transition: transform .12s, background .15s }
+    .sp-card:hover { transform: translateX(3px); background: #263147 }
+    .sp-pos { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0 }
+    .sp-av { width: 32px; height: 32px; border-radius: 50%; background: var(--c); color: white; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+    .sp-info { flex: 1; min-width: 0 }
+    .sp-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+    .sp-detail { font-size: 10px; color: #64748b; margin-top: 1px }
+    .sp-pts { font-size: 20px; font-weight: 900; color: var(--c); flex-shrink: 0 }
+
     /* ── COMPARE VIEW ── */
     #viewCompare { padding: 0 0 60px; max-width: none }
     .cmp-scroll { overflow-x: auto; width: 100% }
@@ -260,7 +276,15 @@
     <div class="dz-sub">o <label for="fi" class="browse">selecciona los archivos</label></div>
   </div>
   <div class="sb-subtitle" id="sbSub" style="display:none"></div>
-  <div class="rank-list" id="rankList"></div>
+  <div class="score-cols">
+    <div class="score-main">
+      <div class="rank-list" id="rankList"></div>
+    </div>
+    <div class="score-side" id="spSection" style="display:none">
+      <div class="sp-hdr"><span>💰 Side Pot</span></div>
+      <div id="spList"></div>
+    </div>
+  </div>
   <div class="empty-hint" id="emptyHint">Sube los archivos Excel para comenzar</div>
 </div>
 
@@ -498,6 +522,24 @@ function renderScore(){
       </div>
       <div class="rank-arrow">›</div>
     </div>`).join('')
+
+  const sp=ranked.filter(r=>r.pl.sidePot)
+  const spSec=document.getElementById('spSection')
+  if(sp.length>0){
+    spSec.style.display=''
+    document.getElementById('spList').innerHTML=sp.map((r,i)=>`
+      <div class="sp-card" style="--c:${r.pl.color}" onclick="openDetail(${r.j})">
+        <div class="sp-pos">${medals[i]||'#'+(i+1)}</div>
+        <div class="sp-av">${initials(r.pl.nombre)}</div>
+        <div class="sp-info">
+          <div class="sp-name">${r.pl.nombre}</div>
+          <div class="sp-detail">${r.exact} ex · ${r.correct} ok</div>
+        </div>
+        <div class="sp-pts">${r.pts}</div>
+      </div>`).join('')
+  } else {
+    spSec.style.display='none'
+  }
 }
 
 // ── Results render ─────────────────────────────────────────────────────────────
