@@ -661,7 +661,11 @@ body{font-family:system-ui,sans-serif;background:#0f172a;color:white;min-height:
 .rank-pts{font-size:26px;font-weight:900;color:var(--c);line-height:1}
 .rank-pts-lbl{font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.06em}
 .rank-arrow{color:#334155;font-size:18px;margin-left:4px}
-.sp-hdr{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.08em;margin:18px 0 10px}
+.score-cols{display:flex;gap:14px;align-items:flex-start}
+.score-main{flex:1;min-width:0}
+.score-side{width:200px;flex-shrink:0}
+@media(max-width:600px){.score-cols{flex-direction:column}.score-side{width:100%}}
+.sp-hdr{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px}
 .sp-hdr::before,.sp-hdr::after{content:'';flex:1;height:1px;background:#1e293b}
 .sp-card{display:flex;align-items:center;gap:10px;background:#1e293b;border-radius:12px;padding:10px 13px;cursor:pointer;border-left:4px solid var(--c);margin-bottom:6px}
 .sp-pos{font-size:16px;width:24px;text-align:center;flex-shrink:0}
@@ -737,10 +741,14 @@ td.em{color:#334155}
 </div>
 <div class="view active" id="viewScore">
   <div class="sb-sub" id="sbSub"></div>
-  <div class="rank-list" id="rankList"></div>
-  <div id="spSection" style="display:none">
-    <div class="sp-hdr"><span>💰 Side Pot</span></div>
-    <div id="spList"></div>
+  <div class="score-cols">
+    <div class="score-main">
+      <div class="rank-list" id="rankList"></div>
+    </div>
+    <div class="score-side" id="spSection" style="display:none">
+      <div class="sp-hdr"><span>💰 Side Pot</span></div>
+      <div id="spList"></div>
+    </div>
   </div>
 </div>
 <div class="view" id="viewCompare">
