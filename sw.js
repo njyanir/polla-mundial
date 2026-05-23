@@ -1,11 +1,12 @@
 const CACHE = 'polla-2026-v1';
+const BASE = '/polla-mundial';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/form.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/form.html',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-192.png',
+  BASE + '/icons/icon-512.png',
   'https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js'
 ];
 
@@ -32,7 +33,7 @@ self.addEventListener('fetch', e => {
         const clone = res.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return res;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match(BASE + '/index.html'));
     })
   );
 });
