@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1e40af">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mis Pronósticos">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>Polla Mundial 2026</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    body { font-family: system-ui, sans-serif; background: #f1f5f9; color: #1e293b }
+
+    /* ── Header ── */
+    header { background: #0f172a; color: white; padding: 16px 24px 18px; text-align: center }
+    header h1 { font-size: 22px; margin-bottom: 4px }
+    header p  { font-size: 14px; color: #94a3b8 }
+    .countdown {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 10px; background: #1e293b;
+      border-radius: 8px; padding: 6px 14px; font-size: 13px; color: #94a3b8;
+    }
+    .countdown .time { color: white; font-weight: 700; font-variant-numeric: tabular-nums }
+    .countdown.urgent { background: #7f1d1d }
+    .countdown.urgent .time { color: #fca5a5 }
+
+    /* ── Rules section ── */
+    .rules-wrap { max-width: 720px; margin: 16px auto 0; padding: 0 16px }
+    .rules-toggle {
+      width: 100%; background: white; border: 1.5px solid #e2e8f0;
+      border-radius: 10px; padding: 11px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; font-size: 14px; font-weight: 700; color: #1e293b;
+    }
+    .rules-toggle:hover { background: #f8fafc }
+    .rules-toggle .arrow { transition: transform .25s; font-size: 12px }
+    .rules-toggle.open .arrow { transform: rotate(180deg) }
+    .rules-body {
+      display: none; background: white;
+      border: 1.5px solid #e2e8f0; border-top: none;
+      border-radius: 0 0 10px 10px; padding: 16px;
+    }
+    .rules-body.open { display: block }
+    .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+    @media (max-width: 520px) { .rules-grid { grid-template-columns: 1fr } }
+    .rules-card { background: #f8fafc; border-radius: 8px; padding: 12px 14px }
+    .rules-card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: #94a3b8; margin-bottom: 8px }
+    .rules-card ul { list-style: none; display: flex; flex-direction: column; gap: 5px }
+    .rules-card li { font-size: 13px; color: #1e293b; display: flex; align-items: baseline; gap: 7px }
+    .rules-card li .tag { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; white-space: nowrap; flex-shrink: 0 }
+    .tag-green  { background: #dcfce7; color: #16a34a }
+    .tag-blue   { background: #dbeafe; color: #2563eb }
+    .tag-slate  { background: #f1f5f9; color: #475569 }
+    .tag-amber  { background: #fef3c7; color: #d97706 }
+    .rules-notice {
+      margin-top: 10px; border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; display: flex; align-items: center; gap: 8px;
+      border: 1.5px solid;
+    }
+    .rules-notice.deadline { background: #fff7ed; border-color: #fed7aa; color: #9a3412 }
+
+
+    /* ── Name box ── */
+    .name-box {
+      max-width: 720px; margin: 16px auto 0; padding: 0 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .name-box label { font-weight: 700; font-size: 15px; white-space: nowrap }
+    .name-box input {
+      flex: 1; padding: 10px 14px; font-size: 16px;
+      border: 2px solid #cbd5e1; border-radius: 8px;
+    }
+    .name-box input:focus { outline: none; border-color: #3b82f6 }
+
+    /* ── Progress bar ── */
+    .progress-wrap { max-width: 720px; margin: 12px auto 0; padding: 0 16px }
+    .progress-bar-bg { height: 7px; background: #e2e8f0; border-radius: 999px; overflow: hidden }
+    .progress-bar-fill { height: 100%; background: #16a34a; border-radius: 999px; width: 0%; transition: width .3s ease }
+    .progress-text { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-top: 5px }
+    .restore-note { font-size: 12px; color: #3b82f6 }
+
+    /* ── Action buttons ── */
+    .actions-wrap { max-width: 720px; margin: 10px auto 0; padding: 0 16px; display: flex; gap: 8px }
+    .btn-action {
+      padding: 7px 14px; border-radius: 8px; border: 1.5px solid #e2e8f0;
+      background: white; font-size: 13px; font-weight: 600; cursor: pointer; color: #475569;
+    }
+    .btn-action:hover { background: #f8fafc; border-color: #cbd5e1 }
+    .btn-action.danger:hover { background: #fff1f2; border-color: #fca5a5; color: #dc2626 }
+
+    /* ── Match Cards ── */
+    .matches-wrap { max-width: 720px; margin: 8px auto 0; padding: 0 16px }
+
+    .date-sep-lbl {
+      display: flex; align-items: center; gap: 10px;
+      margin: 20px 0 10px; color: #94a3b8;
+      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
+    }
+    .date-sep-lbl::before, .date-sep-lbl::after { content: ''; flex: 1; height: 1px; background: #e2e8f0 }
+
+    .match-card {
+      display: flex; align-items: center; gap: 6px;
+      background: white; border-radius: 16px; padding: 14px 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 0 0 1px rgba(0,0,0,.04);
+      margin-bottom: 8px; transition: box-shadow .15s;
+    }
+    .match-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06) }
+    .match-card.mc-filled { box-shadow: 0 1px 4px rgba(22,163,74,.15), 0 0 0 1.5px #86efac }
+
+    .mc-team {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 5px; min-width: 0;
+    }
+    .mc-flag  { font-size: 32px; line-height: 1 }
+    .mc-name  {
+      font-size: 11px; font-weight: 700; color: #475569;
+      text-align: center; text-transform: uppercase; letter-spacing: .02em; line-height: 1.3;
+    }
+    .mc-group {
+      font-size: 9px; font-weight: 800; padding: 1px 6px;
+      border-radius: 999px; background: #f1f5f9; color: #94a3b8; letter-spacing: .05em;
+    }
+
+    .mc-inputs {
+      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    }
+    .mc-inputs input[type=number] {
+      width: 52px; padding: 10px 4px; text-align: center;
+      border: 2px solid #e2e8f0; border-radius: 12px;
+      font-size: 22px; font-weight: 800; color: #1e293b; background: #f8fafc;
+      -moz-appearance: textfield; transition: border-color .15s, background .15s;
+    }
+    .mc-inputs input[type=number]::-webkit-inner-spin-button,
+    .mc-inputs input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none }
+    .mc-inputs input[type=number]:focus { outline: none; border-color: #3b82f6; background: white }
+    .mc-inputs input[type=number].filled { border-color: #86efac; background: #f0fdf4; color: #16a34a }
+    .mc-inputs input[type=number].unusual { border-color: #fb923c; background: #fff7ed; color: #ea580c }
+    .mc-sep { font-size: 22px; font-weight: 800; color: #cbd5e1 }
+
+    /* ── Mobile ── */
+    @media (max-width: 480px) {
+      .match-card { padding: 12px 8px; gap: 4px }
+      .mc-flag { font-size: 26px }
+      .mc-name { font-size: 10px }
+      .mc-inputs input[type=number] { width: 44px; font-size: 18px; padding: 8px 2px; border-radius: 10px }
+      .mc-sep { font-size: 18px }
+      .btn-download { font-size: 14px; padding: 13px }
+      .actions-wrap { gap: 6px }
+      .btn-action { padding: 6px 10px; font-size: 12px }
+      .name-box input { font-size: 15px }
+    }
+
+    /* ── Sticky bottom bar ── */
+    .sticky-bar {
+      position: sticky; bottom: 0;
+      background: linear-gradient(transparent, #f1f5f9 35%);
+      padding: 20px 0 24px;
+    }
+    .btn-download {
+      display: block; width: 100%; padding: 14px;
+      background: #16a34a; color: white;
+      font-size: 16px; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer;
+    }
+    .btn-download:hover { background: #15803d }
+    .tip { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px }
+
+    /* ── Post-download WhatsApp banner ── */
+    .wa-banner {
+      display: none; margin-top: 10px;
+      background: #f0fdf4; border: 1.5px solid #86efac;
+      border-radius: 10px; padding: 11px 14px;
+      align-items: center; gap: 10px;
+    }
+    .wa-banner.show { display: flex }
+    .wa-banner p { flex: 1; font-size: 13px; color: #166534; margin: 0 }
+    .wa-banner p strong { display: block; font-size: 14px }
+    .btn-wa {
+      flex-shrink: 0; display: flex; align-items: center; gap: 7px;
+      background: #25d366; color: white; border: none;
+      padding: 10px 16px; border-radius: 8px;
+      font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+    .btn-wa:hover { background: #1ebe5d }
+
+    /* ── Side Pot ── */
+    .sidepot-wrap { max-width: 720px; margin: 12px auto 0; padding: 0 16px }
+    .sidepot-card {
+      display: flex; align-items: center; gap: 14px;
+      background: white; border: 2px solid #e2e8f0; border-radius: 10px;
+      padding: 13px 16px; cursor: pointer; transition: border-color .2s, background .2s;
+      user-select: none;
+    }
+    .sidepot-card:hover { border-color: #fbbf24 }
+    .sidepot-card.on { border-color: #f59e0b; background: #fffbeb }
+    .sidepot-icon { font-size: 26px; flex-shrink: 0 }
+    .sidepot-text { flex: 1 }
+    .sidepot-title { font-size: 15px; font-weight: 700; color: #1e293b }
+    .sidepot-desc  { font-size: 12px; color: #64748b; margin-top: 2px }
+    .sidepot-cb { width: 20px; height: 20px; accent-color: #f59e0b; cursor: pointer; flex-shrink: 0 }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: #1e293b; color: white; padding: 10px 18px;
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 99;
+      white-space: nowrap;
+    }
+    #toast.show { opacity: 1 }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ Polla Mundial 2026</h1>
+  <p>Ingresa tus predicciones y descarga el archivo para enviarlo</p>
+  <div class="countdown" id="countdown">
+    <span>⏳ Tiempo restante:</span>
+    <span class="time" id="countdownTime">calculando…</span>
+  </div>
+</header>
+
+<!-- Rules section -->
+<div class="rules-wrap">
+  <button class="rules-toggle" id="rulesToggle" onclick="toggleRules()">
+    <span>📋 Ver reglas de la polla</span>
+    <span class="arrow" id="rulesArrow">▼</span>
+  </button>
+  <div class="rules-body" id="rulesBody">
+    <div class="rules-grid">
+
+      <div class="rules-card">
+        <h3>💰 Entrada y premios</h3>
+        <ul>
+          <li><span class="tag tag-slate">Entrada</span> $100 por jugador</li>
+          <li><span class="tag tag-green">1.° lugar</span> 70% del pot</li>
+          <li><span class="tag tag-blue">2.° lugar</span> 20% del pot</li>
+          <li><span class="tag tag-amber">3.° lugar</span> 10% del pot</li>
+        </ul>
+      </div>
+
+      <div class="rules-card">
+        <h3>⚽ Puntuación</h3>
+        <ul>
+          <li><span class="tag tag-green">3 pts</span> Resultado exacto (ej. 2-1)</li>
+          <li><span class="tag tag-blue">1 pt</span> Resultado correcto (G / E / P)</li>
+          <li><span class="tag tag-slate">0 pts</span> Resultado incorrecto</li>
+        </ul>
+      </div>
+
+      <div class="rules-card">
+        <h3>📌 Reglas generales</h3>
+        <ul>
+          <li><span class="tag tag-slate">Fase</span> Solo fase de grupos (72 partidos)</li>
+          <li><span class="tag tag-slate">Parciales</span> Cuentan las predicciones enviadas</li>
+          <li><span class="tag tag-amber">Desempate</span> Más resultados exactos (3 pts) gana</li>
+        </ul>
+      </div>
+
+      <div class="rules-card">
+        <h3>💰 Side Pot</h3>
+        <ul>
+          <li><span class="tag tag-amber">Entrada</span> $100 adicionales</li>
+          <li><span class="tag tag-slate">Máx.</span> 10 jugadores</li>
+          <li><span class="tag tag-green">Mitad 1</span> 50% al líder del Side Pot en el partido 36</li>
+          <li><span class="tag tag-blue">Mitad 2</span> 50% al líder del Side Pot al finalizar</li>
+          <li><span class="tag tag-amber">Doble</span> Un jugador puede ganar ambos premios</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="rules-notice deadline">
+      ⏰ <strong>Fecha límite:</strong>&nbsp; Enviar antes del <strong>10 de junio</strong> — las predicciones enviadas después no serán válidas.
+    </div>
+  </div>
+</div>
+
+<div class="name-box">
+  <label for="nombre">Tu nombre:</label>
+  <input id="nombre" type="text" placeholder="Escribe tu nombre..." oninput="save()">
+</div>
+<div class="name-box">
+  <label for="celular">Celular:</label>
+  <input id="celular" type="tel" placeholder="+1 000 000 0000" oninput="save()">
+</div>
+
+<!-- Side Pot -->
+<div class="sidepot-wrap">
+  <label class="sidepot-card" id="spCard" for="sidePot">
+    <span class="sidepot-icon">💰</span>
+    <div class="sidepot-text">
+      <div class="sidepot-title">Side Pot</div>
+      <div class="sidepot-desc">Marcar para participar en el bote secundario</div>
+    </div>
+    <input type="checkbox" class="sidepot-cb" id="sidePot" onchange="onSidePot()">
+  </label>
+</div>
+
+<!-- Progress bar -->
+<div class="progress-wrap">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-text">
+    <span id="progressText">0 / 72 partidos completados</span>
+    <span id="restoreNote" class="restore-note" style="display:none">✓ Predicciones guardadas restauradas</span>
+  </div>
+</div>
+
+<!-- Action buttons -->
+<div class="actions-wrap">
+  <button class="btn-action" onclick="jumpToNext()">⬇️ Ir al siguiente vacío</button>
+  <button class="btn-action danger" onclick="clearAll()">🗑 Borrar todo</button>
+</div>
+
+<div class="matches-wrap">
+  <div id="matchList"></div>
+</div>
+
+<div class="matches-wrap">
+  <div class="sticky-bar">
+    <button class="btn-download" onclick="descargar()">⬇️ Descargar mi Polla</button>
+    <p class="tip">Descarga el archivo y envíaselo al organizador</p>
+    <div class="wa-banner" id="waBanner">
+      <p><strong>✅ ¡Listo!</strong> Toca el botón para enviarlo por WhatsApp</p>
+      <button class="btn-wa" onclick="abrirWhatsapp()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.168 1.618 5.934L.057 23.882a.5.5 0 0 0 .604.625l6.109-1.598A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.007-1.371l-.358-.214-3.724.975.994-3.63-.234-.374A9.817 9.817 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+        Enviar por WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Rules toggle ──────────────────────────────────────────────────────────────
+function toggleRules() {
+  const btn  = document.getElementById('rulesToggle')
+  const body = document.getElementById('rulesBody')
+  const open = body.classList.toggle('open')
+  btn.classList.toggle('open', open)
+
+}
+
+// ── Countdown ─────────────────────────────────────────────────────────────────
+function updateCountdown() {
+  const deadline = new Date('2026-06-10T23:59:59')
+  const now = new Date()
+  const diff = deadline - now
+  const el   = document.getElementById('countdown')
+  const tel  = document.getElementById('countdownTime')
+  if (diff <= 0) {
+    tel.textContent = '¡Plazo vencido!'
+    el.classList.add('urgent')
+    return
+  }
+  const d  = Math.floor(diff / 86400000)
+  const h  = Math.floor((diff % 86400000) / 3600000)
+  const m  = Math.floor((diff % 3600000)  / 60000)
+  const s  = Math.floor((diff % 60000)    / 1000)
+  tel.textContent = d > 0
+    ? `${d}d ${h}h ${m}m ${s}s`
+    : `${h}h ${m}m ${s}s`
+  if (diff < 3 * 86400000) el.classList.add('urgent')
+}
+updateCountdown()
+setInterval(updateCountdown, 1000)
+
+// ── Flag emojis ───────────────────────────────────────────────────────────────
+const FLAGS = {
+  'MEXICO':'🇲🇽','SOUTH AFRICA':'🇿🇦','SOUTH KOREA':'🇰🇷','CZECHIA':'🇨🇿',
+  'CANADA':'🇨🇦','BOSNIA AND HERZEGOVINA':'🇧🇦','USA':'🇺🇸','PARAGUAY':'🇵🇾',
+  'HAITI':'🇭🇹','SCOTLAND':'🏴󠁧󠁢󠁳󠁣󠁴󠁿','AUSTRALIA':'🇦🇺','TURKIYE':'🇹🇷',
+  'BRAZIL':'🇧🇷','MOROCCO':'🇲🇦','QATAR':'🇶🇦','SWITZERLAND':'🇨🇭',
+  'IVORY COAST':'🇨🇮','ECUADOR':'🇪🇨','GERMANY':'🇩🇪','CURACAO':'🇨🇼',
+  'NETHERLANDS':'🇳🇱','JAPAN':'🇯🇵','SWEDEN':'🇸🇪','TUNISIA':'🇹🇳',
+  'SAUDI ARABIA':'🇸🇦','URUGUAY':'🇺🇾','SPAIN':'🇪🇸','CAPE VERDE':'🇨🇻',
+  'IRAN':'🇮🇷','NEW ZEALAND':'🇳🇿','BELGIUM':'🇧🇪','EGYPT':'🇪🇬',
+  'FRANCE':'🇫🇷','SENEGAL':'🇸🇳','IRAQ':'🇮🇶','NORWAY':'🇳🇴',
+  'ARGENTINA':'🇦🇷','ALGERIA':'🇩🇿','AUSTRIA':'🇦🇹','JORDAN':'🇯🇴',
+  'GHANA':'🇬🇭','PANAMA':'🇵🇦','ENGLAND':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','CROATIA':'🇭🇷',
+  'PORTUGAL':'🇵🇹','CONGO DR':'🇨🇩','UZBEKISTAN':'🇺🇿','COLOMBIA':'🇨🇴',
+}
+const f = t => FLAGS[t] ? FLAGS[t] + ' ' : ''
+
+// ── Match data + groups ───────────────────────────────────────────────────────
+const partidos = [
+  {f:'Jun 11', l:'MEXICO',                  v:'SOUTH AFRICA'},
+  {f:'Jun 11', l:'SOUTH KOREA',             v:'CZECHIA'},
+  {f:'Jun 12', l:'CANADA',                  v:'BOSNIA AND HERZEGOVINA'},
+  {f:'Jun 12', l:'USA',                     v:'PARAGUAY'},
+  {f:'Jun 13', l:'HAITI',                   v:'SCOTLAND'},
+  {f:'Jun 13', l:'AUSTRALIA',               v:'TURKIYE'},
+  {f:'Jun 13', l:'BRAZIL',                  v:'MOROCCO'},
+  {f:'Jun 13', l:'QATAR',                   v:'SWITZERLAND'},
+  {f:'Jun 14', l:'IVORY COAST',             v:'ECUADOR'},
+  {f:'Jun 14', l:'GERMANY',                 v:'CURACAO'},
+  {f:'Jun 14', l:'NETHERLANDS',             v:'JAPAN'},
+  {f:'Jun 14', l:'SWEDEN',                  v:'TUNISIA'},
+  {f:'Jun 15', l:'SAUDI ARABIA',            v:'URUGUAY'},
+  {f:'Jun 15', l:'SPAIN',                   v:'CAPE VERDE'},
+  {f:'Jun 15', l:'IRAN',                    v:'NEW ZEALAND'},
+  {f:'Jun 15', l:'BELGIUM',                 v:'EGYPT'},
+  {f:'Jun 16', l:'FRANCE',                  v:'SENEGAL'},
+  {f:'Jun 16', l:'IRAQ',                    v:'NORWAY'},
+  {f:'Jun 16', l:'ARGENTINA',               v:'ALGERIA'},
+  {f:'Jun 16', l:'AUSTRIA',                 v:'JORDAN'},
+  {f:'Jun 17', l:'GHANA',                   v:'PANAMA'},
+  {f:'Jun 17', l:'ENGLAND',                 v:'CROATIA'},
+  {f:'Jun 17', l:'PORTUGAL',                v:'CONGO DR'},
+  {f:'Jun 17', l:'UZBEKISTAN',              v:'COLOMBIA'},
+  {f:'Jun 18', l:'CZECHIA',                 v:'SOUTH AFRICA'},
+  {f:'Jun 18', l:'SWITZERLAND',             v:'BOSNIA AND HERZEGOVINA'},
+  {f:'Jun 18', l:'CANADA',                  v:'QATAR'},
+  {f:'Jun 18', l:'MEXICO',                  v:'SOUTH KOREA'},
+  {f:'Jun 19', l:'BRAZIL',                  v:'HAITI'},
+  {f:'Jun 19', l:'SCOTLAND',                v:'MOROCCO'},
+  {f:'Jun 19', l:'TURKIYE',                 v:'PARAGUAY'},
+  {f:'Jun 19', l:'USA',                     v:'AUSTRALIA'},
+  {f:'Jun 20', l:'GERMANY',                 v:'IVORY COAST'},
+  {f:'Jun 20', l:'ECUADOR',                 v:'CURACAO'},
+  {f:'Jun 20', l:'NETHERLANDS',             v:'SWEDEN'},
+  {f:'Jun 20', l:'TUNISIA',                 v:'JAPAN'},
+  {f:'Jun 21', l:'URUGUAY',                 v:'CAPE VERDE'},
+  {f:'Jun 21', l:'SPAIN',                   v:'SAUDI ARABIA'},
+  {f:'Jun 21', l:'BELGIUM',                 v:'IRAN'},
+  {f:'Jun 21', l:'NEW ZEALAND',             v:'EGYPT'},
+  {f:'Jun 22', l:'NORWAY',                  v:'SENEGAL'},
+  {f:'Jun 22', l:'FRANCE',                  v:'IRAQ'},
+  {f:'Jun 22', l:'ARGENTINA',               v:'AUSTRIA'},
+  {f:'Jun 22', l:'JORDAN',                  v:'ALGERIA'},
+  {f:'Jun 23', l:'ENGLAND',                 v:'GHANA'},
+  {f:'Jun 23', l:'PANAMA',                  v:'CROATIA'},
+  {f:'Jun 23', l:'PORTUGAL',                v:'UZBEKISTAN'},
+  {f:'Jun 23', l:'COLOMBIA',                v:'CONGO DR'},
+  {f:'Jun 24', l:'SCOTLAND',                v:'BRAZIL'},
+  {f:'Jun 24', l:'MOROCCO',                 v:'HAITI'},
+  {f:'Jun 24', l:'SWITZERLAND',             v:'CANADA'},
+  {f:'Jun 24', l:'BOSNIA AND HERZEGOVINA',  v:'QATAR'},
+  {f:'Jun 24', l:'CZECHIA',                 v:'MEXICO'},
+  {f:'Jun 24', l:'SOUTH AFRICA',            v:'SOUTH KOREA'},
+  {f:'Jun 25', l:'CURACAO',                 v:'IVORY COAST'},
+  {f:'Jun 25', l:'ECUADOR',                 v:'GERMANY'},
+  {f:'Jun 25', l:'JAPAN',                   v:'SWEDEN'},
+  {f:'Jun 25', l:'TUNISIA',                 v:'NETHERLANDS'},
+  {f:'Jun 25', l:'TURKIYE',                 v:'USA'},
+  {f:'Jun 25', l:'PARAGUAY',                v:'AUSTRALIA'},
+  {f:'Jun 26', l:'NORWAY',                  v:'FRANCE'},
+  {f:'Jun 26', l:'SENEGAL',                 v:'IRAQ'},
+  {f:'Jun 26', l:'EGYPT',                   v:'IRAN'},
+  {f:'Jun 26', l:'NEW ZEALAND',             v:'BELGIUM'},
+  {f:'Jun 26', l:'CAPE VERDE',              v:'SAUDI ARABIA'},
+  {f:'Jun 26', l:'URUGUAY',                 v:'SPAIN'},
+  {f:'Jun 27', l:'PANAMA',                  v:'ENGLAND'},
+  {f:'Jun 27', l:'CROATIA',                 v:'GHANA'},
+  {f:'Jun 27', l:'ALGERIA',                 v:'AUSTRIA'},
+  {f:'Jun 27', l:'JORDAN',                  v:'ARGENTINA'},
+  {f:'Jun 27', l:'COLOMBIA',                v:'PORTUGAL'},
+  {f:'Jun 27', l:'CONGO DR',                v:'UZBEKISTAN'},
+]
+
+const grupos = [
+  'A','A','B','C','D','C','D','B','E','E','F','F','G','G','H','H',
+  'I','I','J','J','K','K','L','L','A','B','B','A','D','D','C','C',
+  'E','E','F','F','G','G','H','H','I','I','J','J','K','K','L','L',
+  'D','D','B','B','A','A','E','E','F','F','C','C','I','I','H','H',
+  'G','G','K','K','J','J','L','L'
+]
+
+// ── Short team names for cards ────────────────────────────────────────────────
+const SHORT = {
+  'BOSNIA AND HERZEGOVINA': 'Bosnia',
+  'SOUTH AFRICA':  'S. Africa',
+  'SOUTH KOREA':   'S. Korea',
+  'SAUDI ARABIA':  'S. Arabia',
+  'IVORY COAST':   "C. d'Ivoire",
+  'NEW ZEALAND':   'New Zealand',
+  'CONGO DR':      'Congo DR',
+  'CAPE VERDE':    'Cape Verde',
+}
+function capName(n) {
+  if (SHORT[n]) return SHORT[n]
+  return n.split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')
+}
+
+// ── Render match cards ────────────────────────────────────────────────────────
+function renderMatches() {
+  let html = '', lastDate = ''
+  partidos.forEach((p, i) => {
+    if (p.f !== lastDate) {
+      html += `<div class="date-sep-lbl"><span>📅 ${p.f}</span></div>`
+      lastDate = p.f
+    }
+    const grp = grupos[i] ? `<span class="mc-group">GRP ${grupos[i]}</span>` : ''
+    html += `<div class="match-card" id="mc_${i}">
+      <div class="mc-team">
+        <span class="mc-flag">${FLAGS[p.l]||'🏳️'}</span>
+        <span class="mc-name">${capName(p.l)}</span>
+        ${grp}
+      </div>
+      <div class="mc-inputs">
+        <input type="number" id="l_${i}" min="0" max="20" placeholder="–" oninput="onInput(${i})">
+        <span class="mc-sep">–</span>
+        <input type="number" id="v_${i}" min="0" max="20" placeholder="–" oninput="onInput(${i})">
+      </div>
+      <div class="mc-team">
+        <span class="mc-flag">${FLAGS[p.v]||'🏳️'}</span>
+        <span class="mc-name">${capName(p.v)}</span>
+      </div>
+    </div>`
+  })
+  document.getElementById('matchList').innerHTML = html
+}
+renderMatches()
+
+// ── Keyboard: Tab from away score → next home score ───────────────────────────
+document.getElementById('matchList').addEventListener('keydown', e => {
+  if (e.key !== 'Tab' || e.shiftKey) return
+  const id = document.activeElement?.id
+  if (!id || !id.startsWith('v_')) return
+  const i = parseInt(id.slice(2))
+  const next = document.getElementById(`l_${i + 1}`)
+  if (next) { e.preventDefault(); next.focus() }
+})
+
+// ── Toast helper ──────────────────────────────────────────────────────────────
+let toastTimer
+function showToast(msg) {
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.classList.add('show')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800)
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function updateProgress() {
+  let filled = 0
+  partidos.forEach((_, i) => {
+    const lEl = document.getElementById(`l_${i}`)
+    const vEl = document.getElementById(`v_${i}`)
+    const l = lEl.value, v = vEl.value
+    const hasBoth = l !== '' && v !== ''
+    if (hasBoth) filled++
+    lEl.classList.toggle('filled', hasBoth)
+    vEl.classList.toggle('filled', hasBoth)
+    const card = document.getElementById(`mc_${i}`)
+    if (card) card.classList.toggle('mc-filled', hasBoth)
+  })
+  const pct = Math.round(filled / partidos.length * 100)
+  document.getElementById('progressFill').style.width = pct + '%'
+  document.getElementById('progressText').textContent =
+    filled === partidos.length
+      ? '✅ ¡Todos los partidos completados!'
+      : `${filled} / ${partidos.length} partidos completados`
+}
+
+// ── Side Pot toggle ───────────────────────────────────────────────────────────
+function onSidePot() {
+  document.getElementById('spCard').classList.toggle('on', document.getElementById('sidePot').checked)
+  save()
+}
+
+// ── Auto-save ─────────────────────────────────────────────────────────────────
+function save() {
+  try {
+    const nombre  = document.getElementById('nombre').value
+    const celular = document.getElementById('celular').value
+    const sidePot = document.getElementById('sidePot').checked
+    const scores = {}
+    partidos.forEach((_, i) => {
+      scores[i] = [
+        document.getElementById(`l_${i}`).value,
+        document.getElementById(`v_${i}`).value
+      ]
+    })
+    localStorage.setItem('polla-2026', JSON.stringify({ nombre, celular, scores, sidePot }))
+  } catch(e) {}
+}
+
+// ── Score sanity check ────────────────────────────────────────────────────────
+function checkSanity(i) {
+  const l = parseInt(document.getElementById(`l_${i}`).value)
+  const v = parseInt(document.getElementById(`v_${i}`).value)
+  const lEl = document.getElementById(`l_${i}`)
+  const vEl = document.getElementById(`v_${i}`)
+  const unusual = (!isNaN(l) && l >= 6) || (!isNaN(v) && v >= 6)
+  if (unusual) {
+    lEl.classList.add('unusual')
+    vEl.classList.add('unusual')
+    showToast('⚠️ Resultado inusual — ¿estás seguro?')
+  } else {
+    lEl.classList.remove('unusual')
+    vEl.classList.remove('unusual')
+  }
+}
+
+function onInput(i) {
+  checkSanity(i)
+  save()
+  updateProgress()
+}
+
+// ── Clear all ─────────────────────────────────────────────────────────────────
+function clearAll() {
+  if (!confirm('¿Borrar todas tus predicciones? Esta acción no se puede deshacer.')) return
+  partidos.forEach((_, i) => {
+    document.getElementById(`l_${i}`).value = ''
+    document.getElementById(`v_${i}`).value = ''
+    document.getElementById(`l_${i}`).classList.remove('filled', 'unusual')
+    document.getElementById(`v_${i}`).classList.remove('filled', 'unusual')
+  })
+  save()
+  updateProgress()
+  showToast('🗑 Predicciones borradas')
+}
+
+// ── Jump to next empty ────────────────────────────────────────────────────────
+function jumpToNext() {
+  for (let i = 0; i < partidos.length; i++) {
+    const l = document.getElementById(`l_${i}`).value
+    const v = document.getElementById(`v_${i}`).value
+    if (l === '' || v === '') {
+      const el = document.getElementById(`l_${i}`)
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setTimeout(() => el.focus(), 400)
+      return
+    }
+  }
+  showToast('✅ ¡Ya completaste todos los partidos!')
+}
+
+// ── Restore saved predictions ─────────────────────────────────────────────────
+try {
+  const saved = JSON.parse(localStorage.getItem('polla-2026') || 'null')
+  if (saved) {
+    if (saved.nombre)  document.getElementById('nombre').value  = saved.nombre
+    if (saved.celular) document.getElementById('celular').value = saved.celular
+    if (saved.sidePot) {
+      document.getElementById('sidePot').checked = true
+      document.getElementById('spCard').classList.add('on')
+    }
+    if (saved.scores) {
+      let anyFilled = false
+      Object.entries(saved.scores).forEach(([i, [l, v]]) => {
+        const lEl = document.getElementById(`l_${i}`)
+        const vEl = document.getElementById(`v_${i}`)
+        if (lEl && l !== '') { lEl.value = l; anyFilled = true }
+        if (vEl && v !== '') { vEl.value = v; anyFilled = true }
+      })
+      if (anyFilled) {
+        document.getElementById('restoreNote').style.display = ''
+        setTimeout(() => { document.getElementById('restoreNote').style.display = 'none' }, 4000)
+      }
+    }
+    updateProgress()
+  }
+} catch(e) {}
+
+// ── Build workbook (shared) ───────────────────────────────────────────────────
+function buildWorkbook(nombre) {
+  const celular = document.getElementById('celular').value.trim()
+  const rows = [
+    [],
+    ['NOMBRE',  nombre],
+    ['CELULAR', celular],
+    ['SIDE POT', document.getElementById('sidePot').checked ? 'SI' : 'NO'],
+    [],
+    ['Date', 'Match', 'Score'],
+  ]
+  partidos.forEach((p, i) => {
+    const l = document.getElementById(`l_${i}`).value
+    const v = document.getElementById(`v_${i}`).value
+    const score = (l !== '' && v !== '') ? `${l}-${v}` : ''
+    rows.push([p.f, `${p.l} VS ${p.v}`, score])
+  })
+
+  const wb = XLSX.utils.book_new()
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+  ws['!cols'] = [{ wch: 10.83 }, { wch: 47.5 }, { wch: 11 }]
+
+  const headerStyle = { font:{bold:true,name:'Arial'}, alignment:{horizontal:'center',vertical:'center'} }
+  const dateStyle   = { font:{name:'Arial'}, alignment:{horizontal:'center',vertical:'center'} }
+  const scoreStyle  = { font:{name:'Arial'}, alignment:{horizontal:'center',vertical:'center'},
+    border:{top:{style:'thin',color:{rgb:'000000'}},bottom:{style:'thin',color:{rgb:'000000'}}} }
+
+  ;['A6','B6','C6'].forEach(ref => { if(ws[ref]) ws[ref].s = headerStyle })
+  if(ws['A2']) ws['A2'].s = {font:{bold:true,name:'Arial'},alignment:{horizontal:'center',vertical:'center'}}
+
+  for(let r=6; r<=77; r++){
+    const aRef = XLSX.utils.encode_cell({r,c:0})
+    const cRef = XLSX.utils.encode_cell({r,c:2})
+    if(ws[aRef]) ws[aRef].s = dateStyle
+    if(!ws[cRef]) ws[cRef] = {v:'',t:'s'}
+    ws[cRef].s = scoreStyle
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, 'World Cup 2026')
+  return wb
+}
+
+function excelFileName(nombre) {
+  return `polla-${nombre.toLowerCase().replace(/\s+/g,'-')}.xlsx`
+}
+
+// ── Download Excel ────────────────────────────────────────────────────────────
+function descargar() {
+  const nombre = document.getElementById('nombre').value.trim()
+  if (!nombre) {
+    alert('Por favor escribe tu nombre antes de descargar.')
+    document.getElementById('nombre').focus()
+    return
+  }
+
+  let unfilled = 0
+  partidos.forEach((_, i) => {
+    const l = document.getElementById(`l_${i}`).value
+    const v = document.getElementById(`v_${i}`).value
+    if (l === '' || v === '') unfilled++
+  })
+  if (unfilled > 0) {
+    const ok = confirm(`Tienes ${unfilled} partido${unfilled > 1 ? 's' : ''} sin predicción.\n¿Descargar de todas formas? (los vacíos no sumarán puntos)`)
+    if (!ok) return
+  }
+
+  const wb = buildWorkbook(nombre)
+  save()
+  XLSX.writeFile(wb, excelFileName(nombre), { cellStyles: true })
+
+  // Show WhatsApp banner after download
+  document.getElementById('waBanner').classList.add('show')
+}
+
+// ── Open WhatsApp with nudge message ─────────────────────────────────────────
+async function abrirWhatsapp() {
+  const nombre = document.getElementById('nombre').value.trim()
+  const fileName = excelFileName(nombre)
+
+  // Try Web Share API first (shares the actual file on mobile)
+  const wb      = buildWorkbook(nombre)
+  const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true })
+  const file    = new File([wbArray], fileName,
+    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'Polla Mundial 2026', text: `Mis predicciones — ${nombre} ⚽` })
+      return
+    } catch(e) {
+      if (e.name === 'AbortError') return  // user cancelled, do nothing
+    }
+  }
+
+  // Fallback: open WhatsApp with a text message (works on all browsers)
+  const msg = `Hola! Te mando mis predicciones para la Polla Mundial 2026 ⚽🏆\nAdjunto el archivo: ${fileName}`
+  location.href = 'https://wa.me/?text=' + encodeURIComponent(msg)
+}
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+}
+</script>
+</body>
+</html>
