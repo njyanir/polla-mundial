@@ -31,9 +31,9 @@
     .dash-body { padding: 16px 20px 40px }
     .dash-top { display: grid; grid-template-columns: 1fr 300px; gap: 16px; margin-bottom: 16px; align-items: start }
     @media(max-width: 900px) { .dash-top { grid-template-columns: 1fr } }
-    .dash-panel { background: #1e293b; border-radius: 14px; overflow: hidden }
-    .dash-panel-hdr { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .1em; padding: 11px 16px 10px; border-bottom: 1px solid #0f172a }
-    .dash-panel-body { padding: 14px 16px }
+    .dash-panel { background: #0f1f33; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.35) }
+    .dash-panel-hdr { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: .1em; padding: 11px 16px 10px; border-bottom: 1px solid #162032; background: #0a1628 }
+    .dash-panel-body { padding: 12px 14px }
     .dash-results-body { padding: 10px 12px; max-height: 620px; overflow-y: auto }
     .dash-cmp { margin-bottom: 16px }
 
@@ -55,28 +55,45 @@
     .browse { color: #3b82f6; cursor: pointer; text-decoration: underline }
 
     /* ── SCOREBOARD ── */
-    .rank-list { display: flex; flex-direction: column; gap: 8px }
+    .rank-list { display: flex; flex-direction: column; gap: 5px }
     .rank-card {
-      display: flex; align-items: center; gap: 14px;
-      background: #1e293b; border-radius: 12px; padding: 13px 16px;
-      cursor: pointer; transition: transform .12s, background .15s;
-      border-left: 5px solid var(--c);
+      display: flex; align-items: center; gap: 11px;
+      border-radius: 12px; padding: 10px 13px; cursor: pointer;
+      background: #162032; border-left: 4px solid var(--c);
+      transition: background .15s;
     }
-    .rank-card:hover { transform: translateX(3px); background: #263147 }
-    .rank-pos  { font-size: 20px; width: 30px; text-align: center; flex-shrink: 0 }
+    .rank-card:hover { background: #1e3048 }
+    /* top-3 accents */
+    .rank-gold {
+      background: linear-gradient(110deg, rgba(245,158,11,.13) 0%, #162032 60%);
+      border-left: 5px solid #f59e0b; padding: 13px 13px;
+    }
+    .rank-silver { border-left: 5px solid #94a3b8; background: linear-gradient(110deg,rgba(148,163,184,.07) 0%,#162032 60%) }
+    .rank-bronze { border-left: 5px solid #b45309; background: linear-gradient(110deg,rgba(180,83,9,.07) 0%,#162032 60%) }
+    .rank-pos  { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0 }
+    .rank-gold .rank-pos { font-size: 22px }
     .rank-avatar {
-      width: 40px; height: 40px; border-radius: 50%;
+      width: 36px; height: 36px; border-radius: 50%;
       background: var(--c); color: white;
-      font-size: 15px; font-weight: 800;
+      font-size: 13px; font-weight: 800;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
+    .rank-gold .rank-avatar {
+      width: 44px; height: 44px; font-size: 16px;
+      box-shadow: 0 0 0 2px rgba(245,158,11,.55), 0 0 16px rgba(245,158,11,.18);
+    }
     .rank-info { flex: 1; min-width: 0 }
-    .rank-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-    .rank-detail { font-size: 11.5px; color: #64748b; margin-top: 2px }
-    .rank-pts-wrap { text-align: right; flex-shrink: 0 }
-    .rank-pts { font-size: 26px; font-weight: 900; color: var(--c); line-height: 1 }
+    .rank-name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+    .rank-gold .rank-name { font-size: 15px }
+    .rank-detail { font-size: 10.5px; color: #64748b; margin-top: 1px }
+    .rank-form { display: flex; gap: 3px; margin-top: 5px }
+    .fd { display: inline-block; width: 10px; height: 5px; border-radius: 2px }
+    .fd-ex { background: #4ade80 } .fd-co { background: #fb923c } .fd-wr { background: #f87171 } .fd-em { background: #263147 }
+    .rank-right { text-align: right; flex-shrink: 0; min-width: 40px }
+    .rank-pts { font-size: 22px; font-weight: 900; color: var(--c); line-height: 1 }
+    .rank-gold .rank-pts { font-size: 28px; color: #f59e0b }
     .rank-pts-lbl { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: .06em }
-    .rank-arrow { color: #334155; font-size: 18px; margin-left: 4px }
+    .rank-gap { font-size: 10px; color: #475569; margin-top: 2px; font-weight: 600 }
 
     .empty-hint { text-align: center; color: #475569; padding: 30px 0; font-size: 14px }
 
@@ -87,14 +104,15 @@
     @media(max-width: 600px) { .score-cols { flex-direction: column } .score-side { width: 100% } }
     .sp-hdr { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 10px }
     .sp-hdr::before, .sp-hdr::after { content: ''; flex: 1; height: 1px; background: #334155 }
-    .sp-card { display: flex; align-items: center; gap: 10px; background: #1e293b; border-radius: 12px; padding: 10px 13px; cursor: pointer; border-left: 4px solid var(--c); margin-bottom: 6px; transition: transform .12s, background .15s }
-    .sp-card:hover { transform: translateX(3px); background: #263147 }
-    .sp-pos { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0 }
-    .sp-av { width: 32px; height: 32px; border-radius: 50%; background: var(--c); color: white; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+    .sp-card { display: flex; align-items: center; gap: 9px; background: #162032; border-radius: 10px; padding: 9px 11px; cursor: pointer; border-left: 3px solid var(--c); margin-bottom: 5px; transition: background .15s }
+    .sp-card:hover { background: #1e3048 }
+    .sp-card:first-child { border-left: 4px solid #f59e0b; background: linear-gradient(110deg,rgba(245,158,11,.1) 0%,#162032 60%) }
+    .sp-pos { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0 }
+    .sp-av { width: 28px; height: 28px; border-radius: 50%; background: var(--c); color: white; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
     .sp-info { flex: 1; min-width: 0 }
-    .sp-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+    .sp-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
     .sp-detail { font-size: 10px; color: #64748b; margin-top: 1px }
-    .sp-pts { font-size: 20px; font-weight: 900; color: var(--c); flex-shrink: 0 }
+    .sp-pts { font-size: 18px; font-weight: 900; color: var(--c); flex-shrink: 0 }
 
     /* ── COMPARE VIEW ── */
     .cmp-scroll { overflow-x: auto; width: 100% }
@@ -157,8 +175,8 @@
     }
     .match-row {
       display: flex; align-items: center; gap: 10px;
-      background: #1e293b; border-radius: 9px; padding: 8px 12px;
-      margin-bottom: 5px;
+      background: #162032; border-radius: 8px; padding: 7px 10px;
+      margin-bottom: 4px;
     }
     .match-teams { flex: 1; font-size: 13px; font-weight: 600; min-width: 0 }
     .match-teams small { color: #64748b; font-weight: 400 }
@@ -502,20 +520,26 @@ function renderScore(){
   document.getElementById('sbSub').textContent=`${played} / 72 partidos jugados`
 
   const medals=['🥇','🥈','🥉']
-  document.getElementById('rankList').innerHTML=ranked.map((r,rank)=>`
-    <div class="rank-card" style="--c:${r.pl.color}" onclick="openDetail(${r.j})">
-      <div class="rank-pos">${medals[rank]||'#'+(rank+1)}</div>
+  const podCls=['rank-gold','rank-silver','rank-bronze']
+  const leaderPts=ranked[0]?.pts||0
+  document.getElementById('rankList').innerHTML=ranked.map((r,rank)=>{
+    const gap=rank>0?leaderPts-r.pts:0
+    const played=actuals.map((a,i)=>a?{a,p:r.pl.scores[i]}:null).filter(Boolean)
+    const form=played.slice(-5).map(({a,p})=>{const v=calcPts(a,p);return`<span class="fd ${v===3?'fd-ex':v===1?'fd-co':v===0?'fd-wr':'fd-em'}"></span>`}).join('')
+    return`<div class="rank-card ${podCls[rank]||''}" style="--c:${r.pl.color}" onclick="openDetail(${r.j})">
+      <div class="rank-pos">${medals[rank]||rank+1}</div>
       <div class="rank-avatar">${initials(r.pl.nombre)}</div>
       <div class="rank-info">
         <div class="rank-name">${r.pl.nombre}</div>
-        <div class="rank-detail">${r.exact} exactos &middot; ${r.correct} correctos</div>
+        <div class="rank-detail">${r.exact} ex &middot; ${r.correct} ok</div>
+        <div class="rank-form">${form}</div>
       </div>
-      <div class="rank-pts-wrap">
+      <div class="rank-right">
         <div class="rank-pts">${r.pts}</div>
         <div class="rank-pts-lbl">pts</div>
+        ${gap>0?`<div class="rank-gap">−${gap}</div>`:''}
       </div>
-      <div class="rank-arrow">›</div>
-    </div>`).join('')
+    </div>`}).join('')
 
   const sp=ranked.filter(r=>r.pl.sidePot)
   const spSec=document.getElementById('spSection')
