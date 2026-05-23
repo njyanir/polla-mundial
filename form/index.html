@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1e40af">
+  <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Mis Pronósticos">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>Polla Mundial 2026</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Polla 2026">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
+  <title>⚽ Polla Mundial 2026</title>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0 }
@@ -62,6 +62,7 @@
       border: 1.5px solid;
     }
     .rules-notice.deadline { background: #fff7ed; border-color: #fed7aa; color: #9a3412 }
+    .rules-notice.contact  { background: #f0f9ff; border-color: #bae6fd; color: #0c4a6e }
 
 
     /* ── Name box ── */
@@ -277,6 +278,9 @@
 
     <div class="rules-notice deadline">
       ⏰ <strong>Fecha límite:</strong>&nbsp; Enviar antes del <strong>10 de junio</strong> — las predicciones enviadas después no serán válidas.
+    </div>
+    <div class="rules-notice contact" style="margin-top:8px">
+      📲 <strong>Envío:</strong>&nbsp; Enviar el archivo al <strong>6672-2100</strong> por WhatsApp
     </div>
   </div>
 </div>
@@ -760,13 +764,13 @@ async function abrirWhatsapp() {
 
   // Fallback: open WhatsApp with a text message (works on all browsers)
   const msg = `Hola! Te mando mis predicciones para la Polla Mundial 2026 ⚽🏆\nAdjunto el archivo: ${fileName}`
-  location.href = 'https://wa.me/?text=' + encodeURIComponent(msg)
+  location.href = 'https://wa.me/66722100?text=' + encodeURIComponent(msg)
 }
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+  window.addEventListener('load', () => navigator.serviceWorker.register('../sw.js'));
 }
 </script>
 </body>
