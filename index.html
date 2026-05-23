@@ -15,35 +15,31 @@
     * { box-sizing: border-box; margin: 0; padding: 0 }
     body { font-family: system-ui, sans-serif; background: #0f172a; color: white; min-height: 100vh }
 
-    /* ── NAV ── */
-    nav {
-      background: #0f172a; padding: 14px 18px 0;
-      display: flex; align-items: flex-end; gap: 6px;
-      border-bottom: 2px solid #1e293b; position: sticky; top: 0; z-index: 20;
-    }
-    .tab-btn {
-      background: none; border: none; color: #64748b;
-      font-size: 14px; font-weight: 700; padding: 8px 16px 10px;
-      cursor: pointer; border-radius: 8px 8px 0 0;
-      border-bottom: 2px solid transparent; margin-bottom: -2px;
-    }
-    .tab-btn.active { color: white; border-bottom-color: #f59e0b }
-    .tab-btn:hover:not(.active) { color: #94a3b8 }
-    .nav-right { margin-left: auto; display: flex; gap: 8px; padding-bottom: 8px }
-    .nav-btn {
-      background: #1e293b; border: none; color: #94a3b8;
-      padding: 6px 13px; border-radius: 7px; font-size: 13px;
-      font-weight: 700; cursor: pointer;
-    }
+    /* ── DASHBOARD HEADER ── */
+    .dash-hdr { position: sticky; top: 0; z-index: 20; background: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 20px; display: flex; align-items: center; gap: 14px }
+    .dash-brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0 }
+    .dash-icon { font-size: 26px; line-height: 1; flex-shrink: 0 }
+    .dash-title { font-size: 16px; font-weight: 900 }
+    .dash-sub { font-size: 12px; color: #64748b; margin-top: 2px }
+    .dash-actions { display: flex; gap: 8px; flex-shrink: 0 }
+    .nav-btn { background: #1e293b; border: none; color: #94a3b8; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer }
     .nav-btn:hover { background: #334155; color: white }
-    .nav-btn.primary { background: #16a34a; color: white }
-    .nav-btn.primary:hover { background: #15803d }
     .nav-btn.share { background: #3b82f6; color: white }
     .nav-btn.share:hover { background: #2563eb }
 
-    /* ── VIEWS ── */
-    .view { display: none; padding: 20px 16px 60px; max-width: 640px; margin: 0 auto }
-    .view.active { display: block }
+    /* ── DASHBOARD LAYOUT ── */
+    .dash-body { padding: 16px 20px 40px }
+    .dash-top { display: grid; grid-template-columns: 1fr 300px; gap: 16px; margin-bottom: 16px; align-items: start }
+    @media(max-width: 900px) { .dash-top { grid-template-columns: 1fr } }
+    .dash-panel { background: #1e293b; border-radius: 14px; overflow: hidden }
+    .dash-panel-hdr { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .1em; padding: 11px 16px 10px; border-bottom: 1px solid #0f172a }
+    .dash-panel-body { padding: 14px 16px }
+    .dash-results-body { padding: 10px 12px; max-height: 620px; overflow-y: auto }
+    .dash-cmp { margin-bottom: 16px }
+
+    /* ── DETAIL OVERLAY ── */
+    #viewDetail { display: none; position: fixed; inset: 0; background: #0f172a; overflow-y: auto; z-index: 30; padding: 16px 20px 40px; max-width: none }
+    #viewDetail.active { display: block }
 
     /* ── UPLOAD (inside score view when empty) ── */
     .dropzone {
@@ -59,7 +55,6 @@
     .browse { color: #3b82f6; cursor: pointer; text-decoration: underline }
 
     /* ── SCOREBOARD ── */
-    .sb-subtitle { font-size: 13px; color: #64748b; margin-bottom: 14px; text-align: center }
     .rank-list { display: flex; flex-direction: column; gap: 8px }
     .rank-card {
       display: flex; align-items: center; gap: 14px;
@@ -102,7 +97,6 @@
     .sp-pts { font-size: 20px; font-weight: 900; color: var(--c); flex-shrink: 0 }
 
     /* ── COMPARE VIEW ── */
-    #viewCompare { padding: 0 0 60px; max-width: none }
     .cmp-scroll { overflow-x: auto; width: 100% }
     .cmp-table { border-collapse: collapse; font-size: 12px; background: #1e293b; width: 100% }
     .cmp-table thead th {
@@ -264,48 +258,60 @@
 </head>
 <body>
 
-<nav>
-  <button class="tab-btn active" id="tabBtnScore"   onclick="showTab('score')">🏅 Scoreboard</button>
-  <button class="tab-btn"        id="tabBtnResults" onclick="showTab('results')">⚽ Resultados</button>
-  <button class="tab-btn"        id="tabBtnCompare" onclick="showTab('compare')">📊 Comparar</button>
-  <div class="nav-right">
-    <label for="fi" class="nav-btn" style="cursor:pointer">+ Jugadores</label>
-    <button class="nav-btn share" id="shareBtn" onclick="shareScoreboard()" style="display:none">⬇️ Descargar Scoreboard</button>
+<header class="dash-hdr">
+  <div class="dash-brand">
+    <span class="dash-icon">🏆</span>
+    <div>
+      <div class="dash-title">Polla Mundial 2026</div>
+      <div class="dash-sub" id="sbSub">Sube jugadores para comenzar</div>
+    </div>
   </div>
-</nav>
+  <div class="dash-actions">
+    <label for="fi" class="nav-btn" style="cursor:pointer">+ Jugadores</label>
+    <button class="nav-btn share" id="shareBtn" onclick="shareScoreboard()" style="display:none">⬇️ Descargar</button>
+  </div>
+</header>
 
-<!-- Scoreboard tab -->
-<div class="view active" id="viewScore">
+<div class="dash-body">
   <div class="dropzone" id="dz">
     <div class="icon">📂</div>
     <div class="dz-title">Arrastra los Excel aquí</div>
     <div class="dz-sub">o <label for="fi" class="browse">selecciona los archivos</label></div>
   </div>
-  <div class="sb-subtitle" id="sbSub" style="display:none"></div>
-  <div class="score-cols">
-    <div class="score-main">
-      <div class="rank-list" id="rankList"></div>
+  <div class="empty-hint" id="emptyHint">Sube los archivos Excel para comenzar</div>
+
+  <div class="dash-top" id="dashTop" style="display:none">
+    <!-- Ranking + Side Pot -->
+    <div class="dash-panel">
+      <div class="dash-panel-hdr">🏅 Ranking</div>
+      <div class="dash-panel-body">
+        <div class="score-cols">
+          <div class="score-main">
+            <div class="rank-list" id="rankList"></div>
+          </div>
+          <div class="score-side" id="spSection" style="display:none">
+            <div class="sp-hdr"><span>💰 Side Pot</span></div>
+            <div id="spList"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="score-side" id="spSection" style="display:none">
-      <div class="sp-hdr"><span>💰 Side Pot</span></div>
-      <div id="spList"></div>
+    <!-- Results -->
+    <div class="dash-panel">
+      <div class="dash-panel-hdr">⚽ Resultados</div>
+      <div class="dash-results-body" id="resultsGrid"></div>
     </div>
   </div>
-  <div class="empty-hint" id="emptyHint">Sube los archivos Excel para comenzar</div>
+
+  <!-- Compare table -->
+  <div class="dash-panel dash-cmp" id="dashCompare" style="display:none">
+    <div class="dash-panel-hdr">📊 Comparar pronósticos</div>
+    <div class="cmp-scroll"><table class="cmp-table" id="cmpTable"></table></div>
+  </div>
 </div>
 
-<!-- Results tab -->
-<div class="view" id="viewResults" style="max-width:640px;margin:0 auto;padding:20px 16px 60px">
-  <div id="resultsGrid"></div>
-</div>
-
-<!-- Compare tab -->
-<div class="view" id="viewCompare">
-  <div class="cmp-scroll"><table class="cmp-table" id="cmpTable"></table></div>
-</div>
-
-<!-- Detail view (full overlay) -->
-<div class="view" id="viewDetail">
+<!-- Detail overlay (full screen) -->
+<div id="viewDetail">
   <div class="detail-hdr" id="detHdr" style="--dc:#3b82f6">
     <button class="back-btn" onclick="closeDetail()">← Volver</button>
     <div class="det-avatar" id="detAv"></div>
@@ -416,7 +422,6 @@ const COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06
 let players = []
 let actuals  = Array(72).fill('')
 let openIdx  = null
-let prevTab  = 'score'
 let ranked   = []
 
 function saveActuals(){ try{localStorage.setItem('m26-res',JSON.stringify(actuals))}catch(e){} }
@@ -482,33 +487,16 @@ dz.addEventListener('dragleave',()=>dz.classList.remove('over'))
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');addFiles(e.dataTransfer.files)})
 fi.addEventListener('change',()=>{addFiles(fi.files);fi.value=''})
 
-// ── Tab switching ──────────────────────────────────────────────────────────────
-function showTab(tab){
-  prevTab=tab
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'))
-  if(tab==='score'){
-    document.getElementById('viewScore').classList.add('active')
-    document.getElementById('tabBtnScore').classList.add('active')
-  } else if(tab==='results'){
-    document.getElementById('viewResults').classList.add('active')
-    document.getElementById('tabBtnResults').classList.add('active')
-  } else {
-    document.getElementById('viewCompare').classList.add('active')
-    document.getElementById('tabBtnCompare').classList.add('active')
-    renderCompare()
-  }
-}
-
 // ── Scoreboard render ──────────────────────────────────────────────────────────
 function renderScore(){
   ranked=getRanked()
   const hasPl=players.length>0
   dz.style.display=hasPl?'none':''
   document.getElementById('emptyHint').style.display=hasPl?'none':''
-  document.getElementById('sbSub').style.display=hasPl?'':''
   document.getElementById('shareBtn').style.display=hasPl?'':''
-  if(!hasPl){ document.getElementById('rankList').innerHTML=''; return }
+  document.getElementById('dashTop').style.display=hasPl?'':'none'
+  document.getElementById('dashCompare').style.display=hasPl?'':'none'
+  if(!hasPl){ document.getElementById('rankList').innerHTML=''; document.getElementById('sbSub').textContent='Sube jugadores para comenzar'; return }
 
   const played=actuals.filter(a=>a).length
   document.getElementById('sbSub').textContent=`${played} / 72 partidos jugados`
@@ -567,11 +555,22 @@ function onRes(i,val){
   actuals[i]=val.trim()
   const inp=document.getElementById('ri_'+i)
   if(inp) inp.classList.toggle('filled',!!actuals[i])
-  // sync with detail view if open
+  // sync compare input + detail input
+  const ci=document.getElementById('cri_'+i)
+  if(ci){ ci.value=actuals[i]; ci.classList.toggle('filled',!!actuals[i]) }
   const di=document.getElementById('dri_'+i)
   if(di){ di.value=actuals[i]; di.classList.toggle('filled',!!actuals[i]) }
   saveActuals()
   if(openIdx!==null) refreshDetailRow(i)
+  // update compare prediction cells
+  ranked.forEach(r=>{
+    const pred=r.pl.scores[i]||'', pts=calcPts(actuals[i],pred)
+    const cls=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em'
+    const ptCls=pts===3?'ex':pts===1?'co':pts===0?'wr':''
+    const pc=document.getElementById(`cp_${r.j}_${i}`), pt=document.getElementById(`cpt_${r.j}_${i}`)
+    if(pc){ pc.className=`pred-c ${cls}`; pc.textContent=pred||'–' }
+    if(pt){ pt.className=`pts-c ${ptCls}`; pt.textContent=pts!==null?pts:'–' }
+  })
   renderScore()
 }
 
@@ -579,11 +578,22 @@ function onDetRes(i,val){
   actuals[i]=val.trim()
   const di=document.getElementById('dri_'+i)
   if(di) di.classList.toggle('filled',!!actuals[i])
-  // sync with results view
+  // sync results + compare inputs
   const ri=document.getElementById('ri_'+i)
   if(ri){ ri.value=actuals[i]; ri.classList.toggle('filled',!!actuals[i]) }
+  const ci=document.getElementById('cri_'+i)
+  if(ci){ ci.value=actuals[i]; ci.classList.toggle('filled',!!actuals[i]) }
   saveActuals()
   refreshDetailRow(i)
+  // update compare prediction cells
+  ranked.forEach(r=>{
+    const pred=r.pl.scores[i]||'', pts=calcPts(actuals[i],pred)
+    const cls=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em'
+    const ptCls=pts===3?'ex':pts===1?'co':pts===0?'wr':''
+    const pc=document.getElementById(`cp_${r.j}_${i}`), pt=document.getElementById(`cpt_${r.j}_${i}`)
+    if(pc){ pc.className=`pred-c ${cls}`; pc.textContent=pred||'–' }
+    if(pt){ pt.className=`pts-c ${ptCls}`; pt.textContent=pts!==null?pts:'–' }
+  })
   renderScore()
 }
 
@@ -604,7 +614,6 @@ function refreshDetailRow(i){
 function openDetail(idx){
   openIdx=idx; ranked=getRanked()
   const pl=players[idx], s=getStats(pl), c=pl.color
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
   document.getElementById('viewDetail').classList.add('active')
   document.getElementById('detHdr').style.setProperty('--dc',c)
   document.getElementById('detAv').textContent=initials(pl.nombre)
@@ -649,7 +658,7 @@ function openDetail(idx){
 
 function closeDetail(){
   openIdx=null
-  showTab(prevTab)
+  document.getElementById('viewDetail').classList.remove('active')
 }
 
 function navDetail(dir){
@@ -994,6 +1003,7 @@ function onCmpRes(i,val){
 function renderAll(){
   renderScore()
   renderResults()
+  renderCompare()
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
