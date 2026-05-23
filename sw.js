@@ -1,4 +1,4 @@
-const CACHE = 'polla-2026-v1';
+const CACHE = 'polla-2026-v2';
 const BASE = '/polla-mundial';
 const ASSETS = [
   BASE + '/',
