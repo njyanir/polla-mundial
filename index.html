@@ -9,23 +9,38 @@
   <meta name="apple-mobile-web-app-title" content="Polla 2026">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>🏆 Polla Mundial 2026</title>
+  <title>🛠 Panel Admin — Polla Mundial 2026</title>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0 }
     body { font-family: system-ui, sans-serif; background: #0f172a; color: white; min-height: 100vh }
 
     /* ── DASHBOARD HEADER ── */
-    .dash-hdr { position: sticky; top: 0; z-index: 20; background: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 20px; display: flex; align-items: center; gap: 14px }
+    .dash-hdr { position: sticky; top: 0; z-index: 20; background: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap }
     .dash-brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0 }
     .dash-icon { font-size: 26px; line-height: 1; flex-shrink: 0 }
     .dash-title { font-size: 16px; font-weight: 900 }
     .dash-sub { font-size: 12px; color: #64748b; margin-top: 2px }
-    .dash-actions { display: flex; gap: 8px; flex-shrink: 0 }
+    .dash-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap }
     .nav-btn { background: #1e293b; border: none; color: #94a3b8; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer }
     .nav-btn:hover { background: #334155; color: white }
     .nav-btn.share { background: #3b82f6; color: white }
     .nav-btn.share:hover { background: #2563eb }
+
+    /* ── ADMIN STATS BAR ── */
+    .admin-stats { display: flex; gap: 8px; padding: 10px 20px; background: #0a1628; border-bottom: 1px solid #1e293b; flex-wrap: wrap }
+    .ast-card { background: #1e293b; border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 120px; text-align: center }
+    .ast-val { font-size: 20px; font-weight: 900; color: white }
+    .ast-lbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .06em; margin-top: 3px }
+    .ast-leader .ast-val { font-size: 14px; color: #f59e0b }
+
+    /* ── TOAST ── */
+    #toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999; white-space: nowrap; max-width: calc(100vw - 32px); text-align: center }
+    #toast.show { opacity: 1 }
+    #toast.toast-success { background: #166534; color: white }
+    #toast.toast-warning { background: #92400e; color: white }
+    #toast.toast-error { background: #7f1d1d; color: white }
+    #toast.toast-info { background: #1e3a5f; color: white }
 
     /* ── DASHBOARD LAYOUT ── */
     .dash-body { padding: 16px 20px 40px }
@@ -63,7 +78,6 @@
       transition: background .15s;
     }
     .rank-card:hover { background: #1e3048 }
-    /* top-3 accents */
     .rank-gold {
       background: linear-gradient(110deg, rgba(245,158,11,.13) 0%, #162032 60%);
       border-left: 5px solid #f59e0b; padding: 13px 13px;
@@ -95,6 +109,14 @@
     .rank-pts-lbl { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: .06em }
     .rank-gap { font-size: 10px; color: #475569; margin-top: 2px; font-weight: 600 }
 
+    .tiebreak-note { font-size: 10px; color: #475569; text-align: center; padding: 8px 0 4px; font-style: italic }
+    .sp-info-strip { font-size: 10px; color: #94a3b8; margin: -4px 0 10px; text-align: center }
+    .sp-checkpoint { background: #1a2a1a; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; border: 1px solid #1a3a1a }
+    .sp-cp-lbl { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin-bottom: 3px }
+    .sp-cp-val { font-size: 13px; font-weight: 700; color: #4ade80 }
+    .sp-cp-pending { color: #475569 }
+    .sp-double-badge { display: inline-block; background: #f59e0b; color: #0f172a; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 999px; letter-spacing: .05em; margin-left: 6px }
+
     .empty-hint { text-align: center; color: #475569; padding: 30px 0; font-size: 14px }
 
     /* ── SIDE POT (SCOREBOARD) ── */
@@ -115,6 +137,11 @@
     .sp-pts { font-size: 18px; font-weight: 900; color: var(--c); flex-shrink: 0 }
 
     /* ── COMPARE VIEW ── */
+    .scroll-hint-cmp { display: none; text-align: center; font-size: 11px; color: #475569; padding: 6px; background: #0a1628 }
+    @media(max-width: 700px) { .scroll-hint-cmp { display: block } }
+    .cmp-legend { display: flex; gap: 10px; flex-wrap: wrap; padding: 8px 14px; background: #0a1628; border-bottom: 1px solid #162032; font-size: 11px }
+    .cleg { display: flex; align-items: center; gap: 5px; color: #64748b }
+    .cleg-dot { width: 10px; height: 10px; border-radius: 2px }
     .cmp-scroll { overflow-x: auto; width: 100% }
     .cmp-table { border-collapse: collapse; font-size: 12px; background: #1e293b; width: 100% }
     .cmp-table thead th {
@@ -145,7 +172,6 @@
     .cmp-sc-0 { left: 0 }
     .cmp-sc-1 { left: 52px }
     .cmp-sc-2 { left: 272px; box-shadow: 3px 0 8px rgba(0,0,0,.5) }
-    /* backgrounds for sticky cells per row type */
     .cmp-table tbody tr td.cmp-sc   { background: #1e293b }
     .cmp-table tbody tr:hover td.cmp-sc { background: #263147 }
     .cmp-table .sep-c td.cmp-sc     { background: #0f172a }
@@ -165,6 +191,8 @@
     }
     .cmp-res-input:focus { outline: none; border-color: #3b82f6 }
     .cmp-res-input.filled { border-color: #16a34a; background: #052e16; color: #4ade80 }
+    .res-input.invalid { border-color: #ef4444; background: #450a0a; color: #f87171 }
+    .cmp-res-input.invalid { border-color: #ef4444; background: #450a0a; color: #f87171 }
 
     /* ── RESULTS VIEW ── */
     .date-group { margin-bottom: 18px }
@@ -212,6 +240,14 @@
     .det-pts   { margin-left: auto; text-align: right }
     .det-pts-n { font-size: 28px; font-weight: 900; color: var(--dc); line-height: 1 }
     .det-pts-l { font-size: 10px; color: #475569; text-transform: uppercase }
+    .det-remain { font-size: 12px; color: #475569; margin-top: 4px }
+
+    .det-meta-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; background: #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 12px }
+    .det-meta-item label { font-size: 9px; text-transform: uppercase; letter-spacing: .08em; color: #475569; display: block; margin-bottom: 2px }
+    .det-meta-item span { font-size: 13px; font-weight: 700; color: white }
+
+    .det-copy-btn { background: #1e293b; border: none; color: #94a3b8; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; margin-bottom: 12px }
+    .det-copy-btn:hover { background: #334155; color: white }
 
     .det-nav { display: flex; gap: 8px; margin-bottom: 12px }
     .det-nav-btn {
@@ -271,24 +307,57 @@
       padding: 5px 11px;
     }
 
+    /* ── DANGER / BACKUP BUTTONS ── */
+    .danger-btn { background: #450a0a; color: #f87171; border: none; padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer }
+    .danger-btn:hover { background: #7f1d1d }
+    .backup-btn { background: #1e3a5f; color: #93c5fd; border: none; padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer }
+    .backup-btn:hover { background: #1d4ed8; color: white }
+
     input[type=file] { display: none }
   </style>
 </head>
 <body>
 
+<div id="toast"></div>
+
 <header class="dash-hdr">
   <div class="dash-brand">
-    <span class="dash-icon">🏆</span>
+    <span class="dash-icon">🛠</span>
     <div>
-      <div class="dash-title">Polla Mundial 2026</div>
-      <div class="dash-sub" id="sbSub">Sube jugadores para comenzar</div>
+      <div class="dash-title">Panel Admin — Polla Mundial 2026</div>
+      <div class="dash-sub" id="sbSub">Sube archivos, registra resultados y comparte el ranking.</div>
     </div>
   </div>
   <div class="dash-actions">
     <label for="fi" class="nav-btn" style="cursor:pointer">+ Jugadores</label>
+    <button class="backup-btn" onclick="exportBackup()" title="Descargar backup JSON">💾 Backup</button>
+    <label for="fiBackup" class="backup-btn" style="cursor:pointer" title="Restaurar desde JSON">🔄 Restaurar</label>
     <button class="nav-btn share" id="shareBtn" onclick="shareScoreboard()" style="display:none">⬇️ Descargar</button>
+    <button class="danger-btn" id="delPlayersBtn" onclick="deletePlayers()" style="display:none" title="Borrar jugadores">🗑 Jugadores</button>
+    <button class="danger-btn" id="delResBtn" onclick="deleteResults()" title="Borrar resultados">🗑 Resultados</button>
+    <button class="danger-btn" onclick="resetAll()" title="Reset completo">⚠️ Reset</button>
   </div>
 </header>
+
+<!-- Admin stats bar (hidden until players loaded) -->
+<div class="admin-stats" id="adminStats" style="display:none">
+  <div class="ast-card">
+    <div class="ast-val" id="ast-jugadores">0</div>
+    <div class="ast-lbl">Jugadores</div>
+  </div>
+  <div class="ast-card">
+    <div class="ast-val" id="ast-resultados">0/72</div>
+    <div class="ast-lbl">Resultados</div>
+  </div>
+  <div class="ast-card">
+    <div class="ast-val" id="ast-sidepot">0</div>
+    <div class="ast-lbl">Side Pot</div>
+  </div>
+  <div class="ast-card ast-leader">
+    <div class="ast-val" id="ast-lider">—</div>
+    <div class="ast-lbl">Líder actual</div>
+  </div>
+</div>
 
 <div class="dash-body">
   <div class="dropzone" id="dz">
@@ -306,9 +375,12 @@
         <div class="score-cols">
           <div class="score-main">
             <div class="rank-list" id="rankList"></div>
+            <div class="tiebreak-note">Desempate: más exactos · luego más correctos</div>
           </div>
           <div class="score-side" id="spSection" style="display:none">
             <div class="sp-hdr"><span>💰 Side Pot</span></div>
+            <div class="sp-info-strip" id="spInfoStrip"></div>
+            <div id="spCheckpoint"></div>
             <div id="spList"></div>
           </div>
         </div>
@@ -324,6 +396,13 @@
   <!-- Compare table -->
   <div class="dash-panel dash-cmp" id="dashCompare" style="display:none">
     <div class="dash-panel-hdr">📊 Comparar pronósticos</div>
+    <div class="scroll-hint-cmp">← Desliza para ver todos los jugadores →</div>
+    <div class="cmp-legend">
+      <span class="cleg"><span class="cleg-dot" style="background:#052e16;border:1px solid #4ade80"></span>Exacto (3 pts)</span>
+      <span class="cleg"><span class="cleg-dot" style="background:#422006;border:1px solid #fb923c"></span>Correcto (1 pt)</span>
+      <span class="cleg"><span class="cleg-dot" style="background:#450a0a;border:1px solid #f87171"></span>Incorrecto (0)</span>
+      <span class="cleg"><span class="cleg-dot" style="background:#263147"></span>Sin resultado</span>
+    </div>
     <div class="cmp-scroll"><table class="cmp-table" id="cmpTable"></table></div>
   </div>
 </div>
@@ -340,8 +419,11 @@
     <div class="det-pts">
       <div class="det-pts-n" id="detPts"></div>
       <div class="det-pts-l">puntos</div>
+      <div class="det-remain" id="detRemain"></div>
     </div>
   </div>
+  <div class="det-meta-grid" id="detMetaGrid"></div>
+  <button class="det-copy-btn" onclick="copyPlayerSummary()">📋 Copiar resumen</button>
   <div class="det-nav">
     <button class="det-nav-btn" id="prevBtn" onclick="navDetail(-1)">‹ Anterior</button>
     <button class="det-nav-btn" id="nextBtn" onclick="navDetail(+1)">Siguiente ›</button>
@@ -355,6 +437,7 @@
 </div>
 
 <input type="file" id="fi" multiple accept=".xlsx">
+<input type="file" id="fiBackup" accept=".json">
 
 
 <script>
@@ -447,6 +530,24 @@ function loadActuals(){ try{ const s=JSON.parse(localStorage.getItem('m26-res')|
 function savePlayers(){ try{localStorage.setItem('m26-pls',JSON.stringify(players))}catch(e){} }
 function loadPlayers(){ try{ const s=JSON.parse(localStorage.getItem('m26-pls')||'[]'); if(Array.isArray(s)) players=s }catch(e){} }
 
+// ── Toast ──────────────────────────────────────────────────────────────────────
+let _toastTimer = null
+function showMsg(msg, type='info', duration=3000){
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className = 'show toast-'+type
+  if(_toastTimer) clearTimeout(_toastTimer)
+  _toastTimer = setTimeout(()=>{ t.className = '' }, duration)
+}
+
+// ── Validation ─────────────────────────────────────────────────────────────────
+function isValidRes(s){
+  return /^\d{1,2}-\d{1,2}$/.test(s.trim())
+}
+function normalizeRes(s){
+  return s.trim().replace(/\s*-\s*/g,'-').replace(/(\d+)\s*-\s*(\d+)/,'$1-$2')
+}
+
 // ── Scoring ────────────────────────────────────────────────────────────────────
 function calcPts(actual,pred){
   if(!actual||!pred) return null
@@ -460,7 +561,25 @@ function calcPts(actual,pred){
 }
 function getStats(pl){ let pts=0,exact=0,correct=0; pl.scores.forEach((pred,i)=>{ const p=calcPts(actuals[i],pred); if(p===3){pts+=3;exact++} else if(p===1){pts+=1;correct++} }); return{pts,exact,correct} }
 function initials(n){ return n.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase() }
-function getRanked(){ return players.map((pl,j)=>({...getStats(pl),pl,j})).sort((a,b)=>b.pts-a.pts||b.exact-a.exact) }
+function getRanked(){ return players.map((pl,j)=>({...getStats(pl),pl,j})).sort((a,b)=>b.pts-a.pts||b.exact-a.exact||b.correct-a.correct) }
+
+// ── Side Pot ─────────────────────────────────────────────────────────────────
+function getSP36Leader(){
+  // Only use actuals[0..35] (matches 1-36)
+  const a36 = actuals.slice(0,36)
+  if(!a36.some(a=>a)) return null
+  const spPlayers = players.filter(p=>p.sidePot)
+  if(spPlayers.length===0) return null
+  const scored = spPlayers.map((pl,_)=>{
+    let pts=0,exact=0,correct=0
+    pl.scores.slice(0,36).forEach((pred,i)=>{
+      const p=calcPts(a36[i],pred)
+      if(p===3){pts+=3;exact++} else if(p===1){pts+=1;correct++}
+    })
+    return {pl,pts,exact,correct}
+  }).sort((a,b)=>b.pts-a.pts||b.exact-a.exact||b.correct-a.correct)
+  return scored[0] || null
+}
 
 // ── File loading ───────────────────────────────────────────────────────────────
 function readFile(file){
@@ -470,40 +589,115 @@ function readFile(file){
       const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'})
       const ws=wb.Sheets[wb.SheetNames[0]]
       const nombre=(ws['B2']?.v||file.name.replace(/\.xlsx$/i,'')).toString().trim()
-      const scores=[]
-      for(let row=5;row<=76;row++){
-        const raw=ws[XLSX.utils.encode_cell({r:row,c:2})]?.v?.toString().trim()||''
-        scores.push(raw.replace(/(\d+)\s*-\s*(\d+)/g,'$1-$2'))
+      const celular=(ws['B3']?.v||'').toString().trim()
+      const sidePotRaw=(ws['B4']?.v||'').toString().trim().toUpperCase()
+      const sidePot=sidePotRaw==='SI'||sidePotRaw==='YES'||sidePotRaw==='1'||sidePotRaw==='TRUE'
+
+      // Detect format: if A6 contains "ENTRY ID" -> new format
+      const a6val=(ws['A6']?.v||'').toString().trim().toUpperCase()
+      const isNewFormat = a6val === 'ENTRY ID'
+
+      let entryId='', submitted='', verifyCode='', scores=[]
+
+      if(isNewFormat){
+        entryId=(ws['B6']?.v||'').toString().trim()
+        submitted=(ws['B7']?.v||'').toString().trim()
+        verifyCode=(ws['B8']?.v||'').toString().trim()
+        // Scores from rows 10-81 (0-indexed 9-80), col 3 (D)
+        for(let row=9;row<=80;row++){
+          const raw=ws[XLSX.utils.encode_cell({r:row,c:3})]?.v?.toString().trim()||''
+          scores.push(raw.replace(/(\d+)\s*-\s*(\d+)/g,'$1-$2'))
+        }
+      } else {
+        // Old format: scores from rows 6-77 (0-indexed), col 2 (C)
+        // Row 5 (0-indexed) is the header, so start at row 6
+        for(let row=6;row<=77;row++){
+          const raw=ws[XLSX.utils.encode_cell({r:row,c:2})]?.v?.toString().trim()||''
+          scores.push(raw.replace(/(\d+)\s*-\s*(\d+)/g,'$1-$2'))
+        }
       }
-      res({nombre,scores,fileName:file.name})
+
+      res({nombre,celular,sidePot,entryId,submitted,verifyCode,scores,fileName:file.name})
     }catch(err){rej(err)} }
     r.onerror=rej; r.readAsArrayBuffer(file)
   })
 }
 
 async function addFiles(files){
+  let added=0, replaced=0, warned=[]
   for(const file of files){
     if(!file.name.endsWith('.xlsx')) continue
-    if(players.find(p=>p.fileName===file.name)) continue
     try{
       const pl=await readFile(file)
-      const sameName=players.filter(p=>p.nombre===pl.nombre)
-      if(sameName.length>0) pl.nombre+=` (${file.name.replace(/\.xlsx$/i,'')})`
+
+      // Check by entryId first (if present)
+      if(pl.entryId){
+        const byId=players.findIndex(p=>p.entryId&&p.entryId===pl.entryId)
+        if(byId>=0){
+          pl.color=players[byId].color
+          players[byId]={...pl}
+          replaced++
+          showMsg(`🔄 Reemplazado: ${pl.nombre}`,'info',2500)
+          continue
+        }
+      }
+
+      // Check by fileName
+      const byFile=players.findIndex(p=>p.fileName===file.name)
+      if(byFile>=0){
+        pl.color=players[byFile].color
+        players[byFile]={...pl}
+        replaced++
+        showMsg(`🔄 Archivo reemplazado: ${file.name}`,'info',2500)
+        continue
+      }
+
+      // Check by nombre (same name but different entryId -> warn, still add)
+      const byName=players.filter(p=>p.nombre===pl.nombre)
+      if(byName.length>0){
+        warned.push(pl.nombre)
+      }
+
       pl.color=COLORS[players.length%COLORS.length]
       players.push(pl)
-    }catch(e){}
+      added++
+    }catch(e){ showMsg(`Error leyendo ${file.name}`,'error') }
   }
   savePlayers()
+  if(warned.length>0) showMsg(`⚠️ Nombre repetido: ${warned.join(', ')} — revisar manualmente`,'warning',5000)
+  else if(added>0||replaced>0){
+    const parts=[]
+    if(added>0) parts.push(`${added} nuevo${added!==1?'s':''}`)
+    if(replaced>0) parts.push(`${replaced} reemplazado${replaced!==1?'s':''}`)
+    showMsg(`✓ ${parts.join(', ')} cargado${added+replaced!==1?'s':''}`,'success')
+  }
   renderAll()
 }
 
 // ── Upload wiring ──────────────────────────────────────────────────────────────
 const dz=document.getElementById('dz')
 const fi=document.getElementById('fi')
+const fiBackup=document.getElementById('fiBackup')
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')})
 dz.addEventListener('dragleave',()=>dz.classList.remove('over'))
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');addFiles(e.dataTransfer.files)})
 fi.addEventListener('change',()=>{addFiles(fi.files);fi.value=''})
+fiBackup.addEventListener('change',()=>{importBackup(fiBackup.files[0]);fiBackup.value=''})
+
+// ── Admin stats ────────────────────────────────────────────────────────────────
+function renderStats(){
+  const hasPl=players.length>0
+  document.getElementById('adminStats').style.display=hasPl?'':'none'
+  if(!hasPl) return
+  const played=actuals.filter(a=>a).length
+  const spCount=players.filter(p=>p.sidePot).length
+  const r=getRanked()
+  const leader=r[0]
+  document.getElementById('ast-jugadores').textContent=players.length
+  document.getElementById('ast-resultados').textContent=played+'/72'
+  document.getElementById('ast-sidepot').textContent=spCount
+  document.getElementById('ast-lider').textContent=leader?`${leader.pl.nombre} (${leader.pts}pts)`:'—'
+}
 
 // ── Scoreboard render ──────────────────────────────────────────────────────────
 function renderScore(){
@@ -512,9 +706,11 @@ function renderScore(){
   dz.style.display=hasPl?'none':''
   document.getElementById('emptyHint').style.display=hasPl?'none':''
   document.getElementById('shareBtn').style.display=hasPl?'':''
+  document.getElementById('delPlayersBtn').style.display=hasPl?'':'none'
   document.getElementById('dashTop').style.display=hasPl?'':'none'
   document.getElementById('dashCompare').style.display=hasPl?'':'none'
-  if(!hasPl){ document.getElementById('rankList').innerHTML=''; document.getElementById('sbSub').textContent='Sube jugadores para comenzar'; return }
+  renderStats()
+  if(!hasPl){ document.getElementById('rankList').innerHTML=''; document.getElementById('sbSub').textContent='Sube archivos, registra resultados y comparte el ranking.'; return }
 
   const played=actuals.filter(a=>a).length
   document.getElementById('sbSub').textContent=`${played} / 72 partidos jugados`
@@ -541,10 +737,32 @@ function renderScore(){
       </div>
     </div>`}).join('')
 
+  // Side Pot
   const sp=ranked.filter(r=>r.pl.sidePot)
   const spSec=document.getElementById('spSection')
   if(sp.length>0){
     spSec.style.display=''
+    const spCount=sp.length
+    document.getElementById('spInfoStrip').textContent=`${spCount} participante${spCount!==1?'s':''} · $500 por mitad`
+
+    // SP checkpoint (match 36 leader)
+    const sp36=getSP36Leader()
+    const finalSP=sp[0]
+    let cpHtml=''
+    if(sp36){
+      const isDouble = finalSP && sp36.pl.nombre===finalSP.pl.nombre
+      cpHtml=`<div class="sp-checkpoint">
+        <div class="sp-cp-lbl">Líder Mitad 1 (Match 36)</div>
+        <div class="sp-cp-val">${sp36.pl.nombre} — ${sp36.pts} pts${isDouble?'<span class="sp-double-badge">DOBLETE</span>':''}</div>
+      </div>`
+    } else {
+      cpHtml=`<div class="sp-checkpoint">
+        <div class="sp-cp-lbl">Líder Mitad 1 (Match 36)</div>
+        <div class="sp-cp-val sp-cp-pending">Pendiente</div>
+      </div>`
+    }
+    document.getElementById('spCheckpoint').innerHTML=cpHtml
+
     document.getElementById('spList').innerHTML=sp.map((r,i)=>`
       <div class="sp-card" style="--c:${r.pl.color}" onclick="openDetail(${r.j})">
         <div class="sp-pos">${medals[i]||'#'+(i+1)}</div>
@@ -568,7 +786,7 @@ function renderResults(){
     const val=actuals[i]||''
     html+=`<div class="match-row">
       <div class="match-teams">${fl(m.l)}${m.l} <small>vs</small> ${fl(m.v)}${m.v}</div>
-      <input class="res-input${val?' filled':''}" id="ri_${i}" value="${val}" placeholder="0-0" oninput="onRes(${i},this.value)">
+      <input class="res-input${val?' filled':''}" id="ri_${i}" value="${val}" placeholder="0-0" oninput="onRes(${i},this.value)" onblur="onResBlur(${i},this.value)">
     </div>`
   })
   if(lastDate) html+='</div>'
@@ -576,17 +794,26 @@ function renderResults(){
 }
 
 function onRes(i,val){
-  actuals[i]=val.trim()
+  const norm=normalizeRes(val)
   const inp=document.getElementById('ri_'+i)
-  if(inp) inp.classList.toggle('filled',!!actuals[i])
+  if(val===''){ // clearing
+    actuals[i]=''
+    if(inp){ inp.classList.remove('filled','invalid') }
+  } else if(isValidRes(norm)){
+    actuals[i]=norm
+    if(inp){ inp.classList.toggle('filled',true); inp.classList.remove('invalid') }
+  } else {
+    // Don't update state yet, show invalid
+    if(inp) inp.classList.add('invalid')
+    return
+  }
   // sync compare input + detail input
   const ci=document.getElementById('cri_'+i)
-  if(ci){ ci.value=actuals[i]; ci.classList.toggle('filled',!!actuals[i]) }
+  if(ci){ ci.value=actuals[i]; ci.classList.toggle('filled',!!actuals[i]); ci.classList.remove('invalid') }
   const di=document.getElementById('dri_'+i)
   if(di){ di.value=actuals[i]; di.classList.toggle('filled',!!actuals[i]) }
   saveActuals()
   if(openIdx!==null) refreshDetailRow(i)
-  // update compare prediction cells
   ranked.forEach(r=>{
     const pred=r.pl.scores[i]||'', pts=calcPts(actuals[i],pred)
     const cls=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em'
@@ -598,18 +825,33 @@ function onRes(i,val){
   renderScore()
 }
 
+function onResBlur(i,val){
+  if(!val) return
+  const norm=normalizeRes(val)
+  const inp=document.getElementById('ri_'+i)
+  if(isValidRes(norm)){
+    if(inp){ inp.value=norm; inp.classList.remove('invalid') }
+    onRes(i,norm)
+  }
+}
+
 function onDetRes(i,val){
-  actuals[i]=val.trim()
+  const norm=normalizeRes(val)
   const di=document.getElementById('dri_'+i)
-  if(di) di.classList.toggle('filled',!!actuals[i])
+  if(val===''){ actuals[i]=''; if(di){ di.classList.remove('filled') } }
+  else if(isValidRes(norm)){
+    actuals[i]=norm
+    if(di){ di.classList.toggle('filled',true) }
+  } else {
+    return
+  }
   // sync results + compare inputs
   const ri=document.getElementById('ri_'+i)
-  if(ri){ ri.value=actuals[i]; ri.classList.toggle('filled',!!actuals[i]) }
+  if(ri){ ri.value=actuals[i]; ri.classList.toggle('filled',!!actuals[i]); ri.classList.remove('invalid') }
   const ci=document.getElementById('cri_'+i)
-  if(ci){ ci.value=actuals[i]; ci.classList.toggle('filled',!!actuals[i]) }
+  if(ci){ ci.value=actuals[i]; ci.classList.toggle('filled',!!actuals[i]); ci.classList.remove('invalid') }
   saveActuals()
   refreshDetailRow(i)
-  // update compare prediction cells
   ranked.forEach(r=>{
     const pred=r.pl.scores[i]||'', pts=calcPts(actuals[i],pred)
     const cls=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em'
@@ -632,6 +874,10 @@ function refreshDetailRow(i){
   const s=getStats(players[openIdx])
   document.getElementById('detSub').textContent=`${s.exact} exactos · ${s.correct} correctos`
   document.getElementById('detPts').textContent=s.pts
+  // remaining possible points
+  const remaining=actuals.filter(a=>!a).length
+  const maxAdd=remaining*3
+  document.getElementById('detRemain').textContent=`Máx. posible: ${s.pts+maxAdd} pts`
 }
 
 // ── Detail view ────────────────────────────────────────────────────────────────
@@ -645,6 +891,17 @@ function openDetail(idx){
   document.getElementById('detName').textContent=pl.nombre
   document.getElementById('detSub').textContent=`${s.exact} exactos · ${s.correct} correctos`
   document.getElementById('detPts').textContent=s.pts
+  const remaining=actuals.filter(a=>!a).length
+  document.getElementById('detRemain').textContent=`Máx. posible: ${s.pts+remaining*3} pts`
+
+  // Meta grid
+  const metaItems=[
+    {label:'Celular',val:pl.celular||'—'},
+    {label:'Entry ID',val:pl.entryId||'—'},
+    {label:'Enviado',val:pl.submitted||'—'},
+    {label:'Código',val:pl.verifyCode||'—'},
+  ]
+  document.getElementById('detMetaGrid').innerHTML=metaItems.map(m=>`<div class="det-meta-item"><label>${m.label}</label><span>${m.val}</span></div>`).join('')
 
   // nav arrows
   const pos=ranked.findIndex(r=>r.j===idx)
@@ -692,15 +949,111 @@ function navDetail(dir){
   openDetail(ranked[np].j)
 }
 
+// ── Copy player summary ────────────────────────────────────────────────────────
+function copyPlayerSummary(){
+  if(openIdx===null) return
+  const pl=players[openIdx]
+  const s=getStats(pl)
+  const r2=getRanked()
+  const pos=r2.findIndex(r=>r.j===openIdx)+1
+  const remaining=actuals.filter(a=>!a).length
+  const lines=[
+    `🏆 Polla Mundial 2026`,
+    ``,
+    `Jugador: ${pl.nombre}`,
+    pl.celular?`Celular: ${pl.celular}`:'',
+    pl.entryId?`Entry ID: ${pl.entryId}`:'',
+    ``,
+    `Posición: #${pos} de ${players.length}`,
+    `Puntos: ${s.pts}`,
+    `Exactos: ${s.exact} | Correctos: ${s.correct}`,
+    `Máx. posible: ${s.pts+remaining*3} pts`,
+    ``,
+    `Partidos jugados: ${actuals.filter(a=>a).length}/72`,
+  ].filter(l=>l!==null&&l!==undefined)
+  const text=lines.join('\n')
+  navigator.clipboard.writeText(text).then(()=>showMsg('Resumen copiado al portapapeles','success')).catch(()=>showMsg('No se pudo copiar','error'))
+}
+
+// ── Delete controls ────────────────────────────────────────────────────────────
+function deletePlayers(){
+  if(!confirm(`¿Borrar todos los ${players.length} jugadores? Esta acción no se puede deshacer.`)) return
+  players=[]
+  savePlayers()
+  closeDetail()
+  renderAll()
+  showMsg('Jugadores eliminados','warning')
+}
+
+function deleteResults(){
+  if(!confirm('¿Borrar todos los resultados registrados?')) return
+  actuals=Array(72).fill('')
+  saveActuals()
+  renderAll()
+  showMsg('Resultados eliminados','warning')
+}
+
+function resetAll(){
+  if(!confirm('¿Reset completo? Se borrarán jugadores Y resultados.')) return
+  if(!confirm('Confirma: se perderán todos los datos.')) return
+  players=[]; actuals=Array(72).fill('')
+  savePlayers(); saveActuals()
+  closeDetail()
+  renderAll()
+  showMsg('Reset completo realizado','error')
+}
+
+// ── Backup ─────────────────────────────────────────────────────────────────────
+function exportBackup(){
+  const data={version:2,exported:new Date().toISOString(),players,actuals}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'})
+  const a=document.createElement('a')
+  a.href=URL.createObjectURL(blob)
+  a.download=`polla-backup-${new Date().toISOString().slice(0,10)}.json`
+  a.click()
+  showMsg('Backup descargado','success')
+}
+
+function importBackup(file){
+  if(!file) return
+  const reader=new FileReader()
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result)
+      if(!data.players||!data.actuals) throw new Error('Formato inválido')
+      if(!confirm(`¿Restaurar backup de ${data.exported||'fecha desconocida'}? Esto reemplazará todos los datos actuales.`)) return
+      players=data.players
+      actuals=Array.isArray(data.actuals)&&data.actuals.length===72?data.actuals:Array(72).fill('')
+      savePlayers(); saveActuals()
+      renderAll()
+      showMsg('Backup restaurado correctamente','success')
+    }catch(err){
+      showMsg('Error al leer el backup: '+err.message,'error')
+    }
+  }
+  reader.readAsText(file)
+}
+
 // ── Generate & download standalone scoreboard HTML ────────────────────────────
 function shareScoreboard(){
   const r2=getRanked()
   const played=actuals.filter(a=>a).length
   const total=PARTIDOS.length
   const now=new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})
-  const nPlayers=players.length
+  const timestamp=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
 
-  const bPlayers=JSON.stringify(r2.map(r=>({nombre:r.pl.nombre,color:r.pl.color,scores:r.pl.scores,sidePot:!!r.pl.sidePot})))
+  const sp36=getSP36Leader()
+  const sp36Name=sp36?sp36.pl.nombre:null
+
+  const bPlayers=JSON.stringify(r2.map(r=>({
+    nombre:r.pl.nombre,
+    color:r.pl.color,
+    scores:r.pl.scores,
+    sidePot:!!r.pl.sidePot,
+    entryId:r.pl.entryId||'',
+    verifyCode:r.pl.verifyCode||'',
+    celular:r.pl.celular||''
+  })))
   const bActuals=JSON.stringify(actuals)
   const bPartidos=JSON.stringify(PARTIDOS)
   const bFlags=JSON.stringify(FLAGS)
@@ -718,9 +1071,11 @@ function shareScoreboard(){
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;background:#0f172a;color:white;min-height:100vh;padding-bottom:calc(64px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
-.hdr{background:#0f172a;border-bottom:1px solid #1e293b;padding:12px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
+.hdr{background:#0f172a;border-bottom:1px solid #1e293b;padding:12px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
 .hdr-title{font-size:17px;font-weight:900;letter-spacing:.04em;flex:1}
 .hdr-badge{font-size:11px;color:#64748b;font-weight:600;flex-shrink:0}
+.hdr-ts{font-size:10px;color:#475569;width:100%;padding-top:2px}
+.hdr-sp36{font-size:11px;background:#1a3a1a;color:#4ade80;border-radius:6px;padding:2px 8px;font-weight:700}
 .bnav{position:fixed;bottom:0;left:0;right:0;background:#0a1628;border-top:1.5px solid #1e293b;display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:#475569;cursor:pointer;padding:9px 0 10px;min-height:56px}
 .bnav-btn.active{color:#f59e0b}
@@ -732,7 +1087,7 @@ body{font-family:system-ui,sans-serif;background:#0f172a;color:white;min-height:
 #viewCompare{padding:0;max-width:none}
 .sb-sub{font-size:12px;color:#64748b;margin-bottom:12px;text-align:center}
 .rank-list{display:flex;flex-direction:column;gap:7px}
-.rank-card{display:flex;align-items:center;gap:12px;background:#1e293b;border-radius:14px;padding:12px 14px;cursor:pointer;border-left:5px solid var(--c);-webkit-tap-highlight-color:transparent;active:opacity:.85}
+.rank-card{display:flex;align-items:center;gap:12px;background:#1e293b;border-radius:14px;padding:12px 14px;cursor:pointer;border-left:5px solid var(--c);-webkit-tap-highlight-color:transparent}
 .rank-pos{font-size:20px;width:28px;text-align:center;flex-shrink:0}
 .rank-avatar{width:40px;height:40px;border-radius:50%;background:var(--c);color:white;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .rank-info{flex:1;min-width:0}
@@ -767,6 +1122,9 @@ body{font-family:system-ui,sans-serif;background:#0f172a;color:white;min-height:
 .det-nav-btn{flex:1;background:#1e293b;border:none;color:#64748b;padding:12px 8px;border-radius:10px;font-size:18px;cursor:pointer;font-weight:700;min-height:48px}
 .det-nav-btn:active{background:#334155;color:white}
 .det-nav-btn:disabled{opacity:.3}
+.det-meta{background:#1e293b;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.det-meta-item label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#475569;display:block;margin-bottom:2px}
+.det-meta-item span{font-size:13px;font-weight:700;color:white}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b}
 .leg-dot{width:10px;height:10px;border-radius:2px}
@@ -819,6 +1177,8 @@ td.em{color:#334155}
 <div class="hdr">
   <div class="hdr-title">🏆 Polla 2026</div>
   <div class="hdr-badge">${played}/${total} partidos · ${now}</div>
+  ${sp36Name?`<div class="hdr-sp36">💰 SP Mitad 1: ${sp36Name}</div>`:''}
+  <div class="hdr-ts">Actualizado: ${timestamp}</div>
 </div>
 <div class="view active" id="viewScore">
   <div class="sb-sub" id="sbSub"></div>
@@ -842,6 +1202,7 @@ td.em{color:#334155}
     <div><div class="det-name" id="detName"></div><div class="det-sub" id="detSub"></div></div>
     <div class="det-pts"><div class="det-pts-n" id="detPts"></div><div class="det-pts-l">pts</div></div>
   </div>
+  <div class="det-meta" id="detMeta"></div>
   <div class="det-nav">
     <button class="det-nav-btn" id="prevBtn" onclick="nav(-1)">‹ Anterior</button>
     <button class="det-nav-btn" id="nextBtn" onclick="nav(1)">Siguiente ›</button>
@@ -871,7 +1232,7 @@ const fl=t=>FLAGS[t]?FLAGS[t]+' ':'';
 const ini=n=>n.trim().split(/\\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
 function calcPts(a,p){if(!a||!p)return null;const nm=s=>s.trim().replace(/\\s*-\\s*/,'-');const an=nm(a),pn=nm(p);if(!an||!pn)return null;if(an===pn)return 3;const[al,av]=an.split('-').map(Number),[pl,pv]=pn.split('-').map(Number);if([al,av,pl,pv].some(isNaN))return null;return Math.sign(al-av)===Math.sign(pl-pv)?1:0}
 function stats(pl){let pts=0,ex=0,co=0;pl.scores.forEach((s,i)=>{const p=calcPts(ACTUALS[i],s);if(p===3){pts+=3;ex++}else if(p===1){pts+=1;co++}});return{pts,ex,co}}
-const ranked=PLAYERS.map((pl,j)=>({...stats(pl),pl,j})).sort((a,b)=>b.pts-a.pts||b.ex-a.ex);
+const ranked=PLAYERS.map((pl,j)=>({...stats(pl),pl,j})).sort((a,b)=>b.pts-a.pts||b.ex-a.ex||b.co-a.co);
 let openIdx=null,prevTab='S';
 function sw(t){
   prevTab=t;
@@ -900,8 +1261,10 @@ function open2(idx){
   document.getElementById('detHdr').style.setProperty('--dc',c);
   const av=document.getElementById('detAv');av.textContent=ini(pl.nombre);av.style.background=c;
   document.getElementById('detName').textContent=pl.nombre;
-  document.getElementById('detSub').textContent=s.ex+' exactos \xb7 '+s.co+' correctos';
+  document.getElementById('detSub').textContent=s.ex+' exactos \\xb7 '+s.co+' correctos';
   document.getElementById('detPts').textContent=s.pts;
+  const metaItems=[{label:'Entry ID',val:pl.entryId||'\\u2014'},{label:'C\\u00f3digo',val:pl.verifyCode||'\\u2014'},{label:'Celular',val:pl.celular||'\\u2014'},{label:'Enviado',val:'\\u2014'}];
+  document.getElementById('detMeta').innerHTML=metaItems.map(m=>'<div class="det-meta-item"><label>'+m.label+'</label><span>'+m.val+'</span></div>').join('');
   const pos=ranked.findIndex(r=>r.j===idx);
   document.getElementById('prevBtn').disabled=pos<=0;
   document.getElementById('nextBtn').disabled=pos>=ranked.length-1;
@@ -912,7 +1275,7 @@ function open2(idx){
     const pred=pl.scores[i]||'',res=ACTUALS[i]||'',pts=calcPts(res,pred);
     const pc=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';
     const ptc=pts===3?'pts-ex':pts===1?'pts-co':pts===0?'pts-wr':'pts-bl';
-    h+='<tr><td class="date-col tc">'+m.f+'</td><td class="match-col">'+fl(m.l)+m.l+' <span style="color:#475569">vs</span> '+fl(m.v)+m.v+'</td><td class="tc" style="font-weight:700">'+(res||'–')+'</td><td class="pred-col '+pc+'">'+(pred||'–')+'</td><td class="pts-col '+ptc+'">'+(pts!==null?pts:'–')+'</td></tr>';
+    h+='<tr><td class="date-col tc">'+m.f+'</td><td class="match-col">'+fl(m.l)+m.l+' <span style="color:#475569">vs</span> '+fl(m.v)+m.v+'</td><td class="tc" style="font-weight:700">'+(res||'\\u2013')+'</td><td class="pred-col '+pc+'">'+(pred||'\\u2013')+'</td><td class="pts-col '+ptc+'">'+(pts!==null?pts:'\\u2013')+'</td></tr>';
   });
   document.getElementById('detTbl').innerHTML=h+'</tbody>';
   window.scrollTo(0,0);
@@ -933,8 +1296,8 @@ function renderCmp(){
   let tb='<tbody>',ld='';
   PARTIDOS.forEach((m,i)=>{
     const res=ACTUALS[i]||'';
-    tb+='<tr><td class="date-c cmp-sc cmp-sc-0">'+m.f+'</td><td class="match-c cmp-sc cmp-sc-1">'+fl(m.l)+m.l+' <span style="color:#475569">vs</span> '+fl(m.v)+m.v+'</td><td class="res-c cmp-sc cmp-sc-2">'+(res||'–')+'</td>';
-    ranked.forEach(r=>{const pred=r.pl.scores[i]||'',pts=calcPts(res,pred);const cl=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';const pl2=pts===3?'ex':pts===1?'co':pts===0?'wr':'';tb+='<td class="pred-c '+cl+'">'+(pred||'–')+'</td><td class="pts-c '+pl2+'">'+(pts!==null?pts:'–')+'</td>'});
+    tb+='<tr><td class="date-c cmp-sc cmp-sc-0">'+m.f+'</td><td class="match-c cmp-sc cmp-sc-1">'+fl(m.l)+m.l+' <span style="color:#475569">vs</span> '+fl(m.v)+m.v+'</td><td class="res-c cmp-sc cmp-sc-2">'+(res||'\\u2013')+'</td>';
+    ranked.forEach(r=>{const pred=r.pl.scores[i]||'',pts=calcPts(res,pred);const cl=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';const pl2=pts===3?'ex':pts===1?'co':pts===0?'wr':'';tb+='<td class="pred-c '+cl+'">'+(pred||'\\u2013')+'</td><td class="pts-c '+pl2+'">'+(pts!==null?pts:'\\u2013')+'</td>'});
     tb+='</tr>';
   });
   document.getElementById('cmpTable').innerHTML=th+tb+'</tbody>';
@@ -949,6 +1312,7 @@ renderScore();
   a.href=URL.createObjectURL(blob)
   a.download='polla-mundial-2026.html'
   a.click()
+  showMsg('Scoreboard descargado','success')
 }
 
 
@@ -959,20 +1323,17 @@ function renderCompare(){
     return
   }
   ranked=getRanked()
-  const medals=['🥇','🥈','🥉']
 
-  // Single header row: fixed sticky cols + one pred + one pts per player
   let thead='<thead><tr>'
   thead+='<th class="l cmp-sc cmp-sc-0">Fecha</th>'
   thead+='<th class="l cmp-sc cmp-sc-1">Partido</th>'
   thead+='<th class="c cmp-sc cmp-sc-2" style="width:80px">Resultado</th>'
-  ranked.forEach((r,rank)=>{
+  ranked.forEach(r=>{
     thead+=`<th class="pl-hdr" style="--c:${r.pl.color}" title="${r.pl.nombre} — ${r.pts} pts" onclick="openDetail(${r.j})">${r.pl.nombre}</th>`
     thead+=`<th class="pts-hdr c">Pts</th>`
   })
   thead+='</tr></thead>'
 
-  // Body
   let tbody='<tbody>'
   let lastDate=''
   PARTIDOS.forEach((m,i)=>{
@@ -983,7 +1344,7 @@ function renderCompare(){
     tbody+=`<tr>
       <td class="date-c cmp-sc cmp-sc-0">${m.f}</td>
       <td class="match-c cmp-sc cmp-sc-1">${fl(m.l)}${m.l} <span style="color:#475569">vs</span> ${fl(m.v)}${m.v}</td>
-      <td class="res-c cmp-sc cmp-sc-2"><input class="cmp-res-input${res?' filled':''}" id="cri_${i}" value="${res}" placeholder="0-0" oninput="onCmpRes(${i},this.value)"></td>`
+      <td class="res-c cmp-sc cmp-sc-2"><input class="cmp-res-input${res?' filled':''}" id="cri_${i}" value="${res}" placeholder="0-0" oninput="onCmpRes(${i},this.value)" onblur="onCmpResBlur(${i},this.value)"></td>`
     ranked.forEach(r=>{
       const pred=r.pl.scores[i]||''
       const pts=calcPts(res,pred)
@@ -999,16 +1360,22 @@ function renderCompare(){
 }
 
 function onCmpRes(i,val){
-  actuals[i]=val.trim()
+  const norm=normalizeRes(val)
   const inp=document.getElementById('cri_'+i)
-  if(inp) inp.classList.toggle('filled',!!actuals[i])
+  if(val===''){ actuals[i]=''; if(inp){ inp.classList.remove('filled','invalid') } }
+  else if(isValidRes(norm)){
+    actuals[i]=norm
+    if(inp){ inp.classList.toggle('filled',true); inp.classList.remove('invalid') }
+  } else {
+    if(inp) inp.classList.add('invalid')
+    return
+  }
   // sync other views
   const ri=document.getElementById('ri_'+i)
-  if(ri){ ri.value=actuals[i]; ri.classList.toggle('filled',!!actuals[i]) }
+  if(ri){ ri.value=actuals[i]; ri.classList.toggle('filled',!!actuals[i]); ri.classList.remove('invalid') }
   const di=document.getElementById('dri_'+i)
   if(di){ di.value=actuals[i]; di.classList.toggle('filled',!!actuals[i]) }
   saveActuals()
-  // update all player cells in compare table
   ranked.forEach(r=>{
     const pred=r.pl.scores[i]||''
     const pts=calcPts(actuals[i],pred)
@@ -1021,6 +1388,16 @@ function onCmpRes(i,val){
   })
   if(openIdx!==null) refreshDetailRow(i)
   renderScore()
+}
+
+function onCmpResBlur(i,val){
+  if(!val) return
+  const norm=normalizeRes(val)
+  const inp=document.getElementById('cri_'+i)
+  if(isValidRes(norm)){
+    if(inp){ inp.value=norm; inp.classList.remove('invalid') }
+    onCmpRes(i,norm)
+  }
 }
 
 // ── Render all ─────────────────────────────────────────────────────────────────
