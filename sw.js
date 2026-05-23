@@ -1,9 +1,9 @@
-const CACHE = 'polla-2026-v2';
+const CACHE = 'polla-2026-v3';
 const BASE = '/polla-mundial';
 const ASSETS = [
   BASE + '/',
   BASE + '/index.html',
-  BASE + '/form.html',
+  BASE + '/form/',
   BASE + '/manifest.json',
   BASE + '/icons/icon-192.png',
   BASE + '/icons/icon-512.png',
