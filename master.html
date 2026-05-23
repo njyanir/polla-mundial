@@ -661,6 +661,15 @@ body{font-family:system-ui,sans-serif;background:#0f172a;color:white;min-height:
 .rank-pts{font-size:26px;font-weight:900;color:var(--c);line-height:1}
 .rank-pts-lbl{font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.06em}
 .rank-arrow{color:#334155;font-size:18px;margin-left:4px}
+.sp-hdr{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.08em;margin:18px 0 10px}
+.sp-hdr::before,.sp-hdr::after{content:'';flex:1;height:1px;background:#1e293b}
+.sp-card{display:flex;align-items:center;gap:10px;background:#1e293b;border-radius:12px;padding:10px 13px;cursor:pointer;border-left:4px solid var(--c);margin-bottom:6px}
+.sp-pos{font-size:16px;width:24px;text-align:center;flex-shrink:0}
+.sp-av{width:32px;height:32px;border-radius:50%;background:var(--c);color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sp-info{flex:1;min-width:0}
+.sp-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-detail{font-size:10px;color:#64748b;margin-top:1px}
+.sp-pts{font-size:20px;font-weight:900;color:var(--c);flex-shrink:0}
 .det-hdr{display:flex;align-items:center;gap:12px;background:#1e293b;border-radius:14px;padding:14px 14px;margin-bottom:12px;border-left:5px solid var(--dc)}
 .back-btn{background:#0f172a;border:none;color:#94a3b8;padding:10px 14px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;min-height:44px}
 .det-avatar{width:44px;height:44px;border-radius:50%;background:var(--dc);color:white;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -729,6 +738,10 @@ td.em{color:#334155}
 <div class="view active" id="viewScore">
   <div class="sb-sub" id="sbSub"></div>
   <div class="rank-list" id="rankList"></div>
+  <div id="spSection" style="display:none">
+    <div class="sp-hdr"><span>💰 Side Pot</span></div>
+    <div id="spList"></div>
+  </div>
 </div>
 <div class="view" id="viewCompare">
   <div class="cmp-scroll"><table class="cmp-table" id="cmpTable"></table></div>
@@ -782,6 +795,12 @@ function sw(t){
 function renderScore(){
   document.getElementById('sbSub').textContent=ACTUALS.filter(a=>a).length+' / 72 partidos jugados';
   document.getElementById('rankList').innerHTML=ranked.map((r,rank)=>'<div class="rank-card" style="--c:'+r.pl.color+'" onclick="open2('+r.j+')">'+'<div class="rank-pos">'+(MEDALS[rank]||'#'+(rank+1))+'</div>'+'<div class="rank-avatar">'+ini(r.pl.nombre)+'</div>'+'<div class="rank-info"><div class="rank-name">'+r.pl.nombre+'</div><div class="rank-detail">'+r.ex+' exactos &middot; '+r.co+' correctos</div></div>'+'<div class="rank-pts-wrap"><div class="rank-pts">'+r.pts+'</div><div class="rank-pts-lbl">pts</div></div>'+'<div class="rank-arrow">›</div></div>').join('');
+  const sp=ranked.filter(r=>r.pl.sidePot);
+  const spSec=document.getElementById('spSection');
+  if(sp.length>0){
+    spSec.style.display='';
+    document.getElementById('spList').innerHTML=sp.map((r,i)=>'<div class="sp-card" style="--c:'+r.pl.color+'" onclick="open2('+r.j+')">'+'<div class="sp-pos">'+(MEDALS[i]||'#'+(i+1))+'</div>'+'<div class="sp-av">'+ini(r.pl.nombre)+'</div>'+'<div class="sp-info"><div class="sp-name">'+r.pl.nombre+'</div><div class="sp-detail">'+r.ex+' ex · '+r.co+' ok</div></div>'+'<div class="sp-pts">'+r.pts+'</div></div>').join('');
+  } else spSec.style.display='none';
 }
 function open2(idx){
   openIdx=idx;
