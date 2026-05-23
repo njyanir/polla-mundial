@@ -12,29 +12,65 @@
   <title>⚽ Polla Mundial 2026</title>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
+    /* ── Reset ── */
     * { box-sizing: border-box; margin: 0; padding: 0 }
-    body { font-family: system-ui, sans-serif; background: #f1f5f9; color: #1e293b }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #1e293b }
+
+    /* ── Locked banner ── */
+    #lockedBanner {
+      display: none; background: #7f1d1d; color: white;
+      padding: 13px 20px; text-align: center;
+      font-size: 15px; font-weight: 700;
+      position: sticky; top: 0; z-index: 100;
+      justify-content: center; align-items: center; gap: 8px;
+    }
+
+    /* ── Mini progress strip ── */
+    .mini-progress {
+      position: sticky; top: 0; z-index: 99;
+      height: 3px; background: #e2e8f0;
+    }
+    .mini-progress-fill {
+      height: 100%; background: linear-gradient(90deg,#16a34a,#22c55e);
+      width: 0%; transition: width .4s ease;
+    }
+
+    /* ── Save toast (top-right) ── */
+    #saveToast {
+      position: fixed; top: 16px; right: 16px;
+      background: #166534; color: white; padding: 8px 14px;
+      border-radius: 8px; font-size: 12px; font-weight: 600;
+      opacity: 0; transition: opacity .4s; pointer-events: none; z-index: 200;
+      white-space: nowrap;
+    }
+    #saveToast.show { opacity: 1 }
 
     /* ── Header ── */
-    header { background: #0f172a; color: white; padding: 16px 24px 18px; text-align: center }
-    header h1 { font-size: 22px; margin-bottom: 4px }
-    header p  { font-size: 14px; color: #94a3b8 }
+    header {
+      background: linear-gradient(135deg,#0f172a 0%,#1a3a5c 100%);
+      color: white; padding: 16px 24px 18px; text-align: center;
+    }
+    @media(max-width:480px){ header { padding: 12px 16px 14px } }
+    header h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: -.3px }
+    @media(max-width:480px){ header h1 { font-size: 18px } }
+    header p { font-size: 14px; color: #94a3b8 }
     .countdown {
       display: inline-flex; align-items: center; gap: 8px;
-      margin-top: 10px; background: #1e293b;
+      margin-top: 10px; background: rgba(255,255,255,.08);
       border-radius: 8px; padding: 6px 14px; font-size: 13px; color: #94a3b8;
     }
     .countdown .time { color: white; font-weight: 700; font-variant-numeric: tabular-nums }
-    .countdown.urgent { background: #7f1d1d }
+    .countdown.urgent { background: rgba(239,68,68,.25) }
     .countdown.urgent .time { color: #fca5a5 }
 
-    /* ── Rules section ── */
+    /* ── Rules ── */
     .rules-wrap { max-width: 720px; margin: 16px auto 0; padding: 0 16px }
     .rules-toggle {
       width: 100%; background: white; border: 1.5px solid #e2e8f0;
       border-radius: 10px; padding: 11px 16px;
       display: flex; justify-content: space-between; align-items: center;
       cursor: pointer; font-size: 14px; font-weight: 700; color: #1e293b;
+      transition: background .15s;
     }
     .rules-toggle:hover { background: #f8fafc }
     .rules-toggle .arrow { transition: transform .25s; font-size: 12px }
@@ -46,7 +82,7 @@
     }
     .rules-body.open { display: block }
     .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
-    @media (max-width: 520px) { .rules-grid { grid-template-columns: 1fr } }
+    @media(max-width:520px){ .rules-grid { grid-template-columns: 1fr } }
     .rules-card { background: #f8fafc; border-radius: 8px; padding: 12px 14px }
     .rules-card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: #94a3b8; margin-bottom: 8px }
     .rules-card ul { list-style: none; display: flex; flex-direction: column; gap: 5px }
@@ -58,29 +94,52 @@
     .tag-amber  { background: #fef3c7; color: #d97706 }
     .rules-notice {
       margin-top: 10px; border-radius: 8px; padding: 10px 14px;
-      font-size: 13px; display: flex; align-items: center; gap: 8px;
-      border: 1.5px solid;
+      font-size: 13px; display: flex; align-items: center; gap: 8px; border: 1.5px solid;
     }
     .rules-notice.deadline { background: #fff7ed; border-color: #fed7aa; color: #9a3412 }
     .rules-notice.contact  { background: #f0f9ff; border-color: #bae6fd; color: #0c4a6e }
 
+    /* ── Stats summary ── */
+    .stats-wrap { max-width: 720px; margin: 14px auto 0; padding: 0 16px }
+    .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px }
+    @media(max-width:480px){ .stats-grid { grid-template-columns: repeat(2,1fr) } }
+    .stat-card {
+      background: white; border-radius: 10px; padding: 12px 8px;
+      text-align: center; border: 1.5px solid #e2e8f0; transition: border-color .2s, background .2s;
+    }
+    .stat-card.sp-on { border-color: #f59e0b; background: #fffbeb }
+    .stat-val { font-size: 18px; font-weight: 800; color: #1e293b; line-height: 1; letter-spacing: -.5px }
+    .stat-lbl { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; margin-top: 4px }
+
+    /* ── Entry ID card ── */
+    .entry-id-wrap { max-width: 720px; margin: 10px auto 0; padding: 0 16px }
+    .entry-id-card {
+      background: #0f172a; border-radius: 10px; padding: 10px 16px;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .eid-block { display: flex; flex-direction: column; gap: 1px }
+    .eid-lbl { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #475569; text-transform: uppercase }
+    .eid-val { font-size: 14px; font-weight: 800; color: #38bdf8; letter-spacing: .04em }
+    .eid-code { color: #a5b4fc }
+    .eid-ts { margin-left: auto; font-size: 11px; color: #475569 }
 
     /* ── Name box ── */
-    .name-box {
-      max-width: 720px; margin: 16px auto 0; padding: 0 16px;
-      display: flex; align-items: center; gap: 12px;
-    }
+    .name-box { max-width: 720px; margin: 14px auto 0; padding: 0 16px; display: flex; align-items: center; gap: 12px }
     .name-box label { font-weight: 700; font-size: 15px; white-space: nowrap }
     .name-box input {
       flex: 1; padding: 10px 14px; font-size: 16px;
-      border: 2px solid #cbd5e1; border-radius: 8px;
+      border: 2px solid #cbd5e1; border-radius: 8px; transition: border-color .15s;
     }
     .name-box input:focus { outline: none; border-color: #3b82f6 }
+    .name-box input:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed }
 
     /* ── Progress bar ── */
     .progress-wrap { max-width: 720px; margin: 12px auto 0; padding: 0 16px }
     .progress-bar-bg { height: 7px; background: #e2e8f0; border-radius: 999px; overflow: hidden }
-    .progress-bar-fill { height: 100%; background: #16a34a; border-radius: 999px; width: 0%; transition: width .3s ease }
+    .progress-bar-fill {
+      height: 100%; background: linear-gradient(90deg,#16a34a,#22c55e);
+      border-radius: 999px; width: 0%; transition: width .4s ease;
+    }
     .progress-text { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-top: 5px }
     .restore-note { font-size: 12px; color: #3b82f6 }
 
@@ -89,35 +148,48 @@
     .btn-action {
       padding: 7px 14px; border-radius: 8px; border: 1.5px solid #e2e8f0;
       background: white; font-size: 13px; font-weight: 600; cursor: pointer; color: #475569;
+      transition: background .15s, border-color .15s, color .15s;
     }
     .btn-action:hover { background: #f8fafc; border-color: #cbd5e1 }
     .btn-action.danger:hover { background: #fff1f2; border-color: #fca5a5; color: #dc2626 }
+    .btn-action:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none }
 
     /* ── Match Cards ── */
     .matches-wrap { max-width: 720px; margin: 8px auto 0; padding: 0 16px }
 
     .date-sep-lbl {
       display: flex; align-items: center; gap: 10px;
-      margin: 20px 0 10px; color: #94a3b8;
+      margin: 24px 0 10px; color: #94a3b8;
       font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
     }
-    .date-sep-lbl::before, .date-sep-lbl::after { content: ''; flex: 1; height: 1px; background: #e2e8f0 }
+    .date-sep-lbl::before,.date-sep-lbl::after { content:''; flex:1; height:1px; background:#e2e8f0 }
+    .date-sep-lbl.sep-today { color: #d97706 }
+    .date-sep-lbl.sep-today::before,.date-sep-lbl.sep-today::after { background: #fde68a }
+    .date-sep-lbl.sep-past { opacity: .45 }
 
     .match-card {
       display: flex; align-items: center; gap: 6px;
-      background: white; border-radius: 16px; padding: 14px 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 0 0 1px rgba(0,0,0,.04);
-      margin-bottom: 8px; transition: box-shadow .15s;
+      background: white; border-radius: 14px; padding: 14px 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 0 0 1.5px rgba(0,0,0,.04);
+      margin-bottom: 8px;
+      transition: box-shadow .2s, transform .15s, opacity .3s;
     }
-    .match-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06) }
-    .match-card.mc-filled { box-shadow: 0 1px 4px rgba(22,163,74,.15), 0 0 0 1.5px #86efac }
+    .match-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.11), 0 0 0 1.5px rgba(0,0,0,.06); transform: translateY(-1px) }
+    .match-card.mc-filled { box-shadow: 0 2px 10px rgba(22,163,74,.2), 0 0 0 2px #86efac }
+    .match-card.mc-today {
+      box-shadow: 0 4px 22px rgba(245,158,11,.3), 0 0 0 2px #f59e0b !important;
+      animation: pulseGold 2.5s ease-in-out infinite;
+    }
+    .match-card.mc-past { opacity: .45; filter: grayscale(.2) }
+    .match-card.mc-past:hover { opacity: .6 }
+    @keyframes pulseGold {
+      0%,100% { box-shadow: 0 4px 22px rgba(245,158,11,.25),0 0 0 2px #f59e0b }
+      50%      { box-shadow: 0 4px 32px rgba(245,158,11,.45),0 0 0 2px #fbbf24 }
+    }
 
-    .mc-team {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; gap: 5px; min-width: 0;
-    }
-    .mc-flag  { font-size: 32px; line-height: 1 }
-    .mc-name  {
+    .mc-team { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0 }
+    .mc-flag { font-size: 32px; line-height: 1 }
+    .mc-name {
       font-size: 11px; font-weight: 700; color: #475569;
       text-align: center; text-transform: uppercase; letter-spacing: .02em; line-height: 1.3;
     }
@@ -125,25 +197,34 @@
       font-size: 9px; font-weight: 800; padding: 1px 6px;
       border-radius: 999px; background: #f1f5f9; color: #94a3b8; letter-spacing: .05em;
     }
-
-    .mc-inputs {
-      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    .mc-time {
+      font-size: 9px; font-weight: 700; color: #cbd5e1; letter-spacing: .03em;
     }
+    .mc-time.today { color: #fbbf24 }
+
+    .mc-inputs { display:flex; align-items:center; gap:6px; flex-shrink:0 }
     .mc-inputs input[type=number] {
       width: 52px; padding: 10px 4px; text-align: center;
       border: 2px solid #e2e8f0; border-radius: 12px;
       font-size: 22px; font-weight: 800; color: #1e293b; background: #f8fafc;
-      -moz-appearance: textfield; transition: border-color .15s, background .15s;
+      -moz-appearance: textfield;
+      transition: border-color .15s, background .15s, box-shadow .15s;
     }
     .mc-inputs input[type=number]::-webkit-inner-spin-button,
     .mc-inputs input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none }
-    .mc-inputs input[type=number]:focus { outline: none; border-color: #3b82f6; background: white }
+    .mc-inputs input[type=number]:focus {
+      outline: none; border-color: #3b82f6; background: white;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+    }
     .mc-inputs input[type=number].filled { border-color: #86efac; background: #f0fdf4; color: #16a34a }
     .mc-inputs input[type=number].unusual { border-color: #fb923c; background: #fff7ed; color: #ea580c }
+    .mc-inputs input[type=number]:disabled {
+      background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0;
+    }
     .mc-sep { font-size: 22px; font-weight: 800; color: #cbd5e1 }
 
     /* ── Mobile ── */
-    @media (max-width: 480px) {
+    @media(max-width:480px){
       .match-card { padding: 12px 8px; gap: 4px }
       .mc-flag { font-size: 26px }
       .mc-name { font-size: 10px }
@@ -155,54 +236,92 @@
       .name-box input { font-size: 15px }
     }
 
-    /* ── Sticky bottom bar ── */
-    .sticky-bar {
-      position: sticky; bottom: 0;
-      background: linear-gradient(transparent, #f1f5f9 35%);
-      padding: 20px 0 24px;
-    }
-    .btn-download {
-      display: block; width: 100%; padding: 14px;
-      background: #16a34a; color: white;
-      font-size: 16px; font-weight: 700;
-      border: none; border-radius: 10px; cursor: pointer;
-    }
-    .btn-download:hover { background: #15803d }
-    .tip { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px }
-
-    /* ── Post-download WhatsApp banner ── */
-    .wa-banner {
-      display: none; margin-top: 10px;
-      background: #f0fdf4; border: 1.5px solid #86efac;
-      border-radius: 10px; padding: 11px 14px;
-      align-items: center; gap: 10px;
-    }
-    .wa-banner.show { display: flex }
-    .wa-banner p { flex: 1; font-size: 13px; color: #166534; margin: 0 }
-    .wa-banner p strong { display: block; font-size: 14px }
-    .btn-wa {
-      flex-shrink: 0; display: flex; align-items: center; gap: 7px;
-      background: #25d366; color: white; border: none;
-      padding: 10px 16px; border-radius: 8px;
-      font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
-    }
-    .btn-wa:hover { background: #1ebe5d }
-
     /* ── Side Pot ── */
     .sidepot-wrap { max-width: 720px; margin: 12px auto 0; padding: 0 16px }
     .sidepot-card {
       display: flex; align-items: center; gap: 14px;
       background: white; border: 2px solid #e2e8f0; border-radius: 10px;
-      padding: 13px 16px; cursor: pointer; transition: border-color .2s, background .2s;
+      padding: 13px 16px; cursor: pointer;
+      transition: border-color .2s, background .2s, box-shadow .2s;
       user-select: none;
     }
     .sidepot-card:hover { border-color: #fbbf24 }
-    .sidepot-card.on { border-color: #f59e0b; background: #fffbeb }
+    .sidepot-card.on {
+      border-color: #f59e0b; background: #fffbeb;
+      box-shadow: 0 0 20px rgba(245,158,11,.18);
+    }
     .sidepot-icon { font-size: 26px; flex-shrink: 0 }
     .sidepot-text { flex: 1 }
     .sidepot-title { font-size: 15px; font-weight: 700; color: #1e293b }
     .sidepot-desc  { font-size: 12px; color: #64748b; margin-top: 2px }
     .sidepot-cb { width: 20px; height: 20px; accent-color: #f59e0b; cursor: pointer; flex-shrink: 0 }
+    .sidepot-cb:disabled { cursor: not-allowed }
+
+    /* ── Sticky bottom bar ── */
+    .matches-wrap .sticky-bar {
+      position: sticky; bottom: 0;
+      background: linear-gradient(transparent, #f1f5f9 34%);
+      padding: 20px 0 24px;
+    }
+    .btn-download {
+      display: block; width: 100%; padding: 14px;
+      background: linear-gradient(135deg,#16a34a,#15803d);
+      color: white; font-size: 16px; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      box-shadow: 0 4px 16px rgba(22,163,74,.35);
+    }
+    .btn-download:hover { opacity: .92; transform: translateY(-1px) }
+    .btn-download:active { transform: translateY(0) }
+    .btn-download:disabled { opacity: .38; cursor: not-allowed; transform: none; box-shadow: none }
+    .tip { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px }
+
+    .dl-row { display: flex; gap: 8px; margin-top: 8px }
+    .btn-pdf {
+      flex: 1; padding: 10px; background: white;
+      border: 1.5px solid #e2e8f0; border-radius: 8px;
+      font-size: 13px; font-weight: 600; color: #475569; cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-pdf:hover { background: #f8fafc; border-color: #cbd5e1 }
+    .btn-pdf:disabled { opacity: .38; cursor: not-allowed }
+
+    /* ── WhatsApp banner ── */
+    .wa-banner {
+      display: none; margin-top: 10px;
+      background: #f0fdf4; border: 1.5px solid #86efac;
+      border-radius: 10px; padding: 11px 14px;
+      align-items: flex-start; gap: 10px; flex-wrap: wrap;
+    }
+    .wa-banner.show { display: flex }
+    .wa-banner p { flex: 1; font-size: 13px; color: #166534; margin: 0; min-width: 100px }
+    .wa-banner p strong { display: block; font-size: 14px }
+    .wa-btns { display: flex; gap: 8px; flex-wrap: wrap }
+    .btn-wa {
+      display: flex; align-items: center; gap: 7px;
+      background: #25d366; color: white; border: none;
+      padding: 10px 16px; border-radius: 8px;
+      font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+      transition: background .15s;
+    }
+    .btn-wa:hover { background: #1ebe5d }
+    .btn-copy-msg {
+      display: flex; align-items: center; gap: 6px;
+      background: white; color: #475569;
+      border: 1.5px solid #e2e8f0; padding: 10px 14px;
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: background .15s;
+    }
+    .btn-copy-msg:hover { background: #f8fafc }
+
+    /* ── Final warning ── */
+    .final-warning-wrap { max-width: 720px; margin: 0 auto 28px; padding: 0 16px }
+    .final-warning {
+      background: #fffbeb; border: 1.5px solid #fde68a;
+      border-radius: 10px; padding: 11px 14px;
+      font-size: 13px; color: #92400e;
+      display: flex; align-items: center; gap: 8px;
+    }
 
     /* ── Toast ── */
     #toast {
@@ -210,12 +329,52 @@
       background: #1e293b; color: white; padding: 10px 18px;
       border-radius: 8px; font-size: 13px; font-weight: 600;
       opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 99;
-      white-space: nowrap;
+      white-space: nowrap; max-width: calc(100% - 32px); text-align: center;
     }
     #toast.show { opacity: 1 }
+
+    /* ── Print / PDF ── */
+    @media print {
+      body > *:not(#printSection) { display: none !important }
+      #printSection { display: block !important }
+      @page { margin: 14mm 12mm; size: A4 }
+    }
+    #printSection { display: none }
+    .pr-header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e2e8f0 }
+    .pr-header h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px }
+    .pr-header p { font-size: 13px; color: #64748b }
+    .pr-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px }
+    .pr-meta-item { flex: 1; min-width: 130px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px 12px }
+    .pr-meta-item label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; display: block; margin-bottom: 3px }
+    .pr-meta-item span { font-size: 14px; font-weight: 700; color: #0f172a }
+    .pr-security {
+      background: #0f172a; color: white; border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 14px;
+      display: flex; gap: 24px; flex-wrap: wrap;
+    }
+    .pr-security .ps-block { display: flex; flex-direction: column; gap: 2px }
+    .pr-security .ps-lbl { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #475569; text-transform: uppercase }
+    .pr-security .ps-val { font-size: 14px; font-weight: 800; color: #38bdf8 }
+    .pr-security .ps-ts { color: white; font-size: 12px }
+    .pr-table { width: 100%; border-collapse: collapse; font-size: 12px }
+    .pr-table th { background: #0f172a; color: white; padding: 7px 10px; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .04em }
+    .pr-table td { padding: 5px 10px; border-bottom: 1px solid #f1f5f9 }
+    .pr-table tr:nth-child(even) td { background: #f8fafc }
+    .pr-score { font-weight: 800; text-align: center; color: #16a34a }
+    .pr-score.empty { color: #cbd5e1 }
+    .pr-footer { margin-top: 14px; text-align: center; font-size: 11px; color: #94a3b8; padding-top: 10px; border-top: 1px solid #e2e8f0 }
   </style>
 </head>
 <body>
+
+<!-- Locked banner -->
+<div id="lockedBanner">⛔ Predicciones cerradas — El plazo venció el 10 de junio de 2026</div>
+
+<!-- Mini progress strip (sticky, just below header on scroll) -->
+<div class="mini-progress"><div class="mini-progress-fill" id="miniProgressFill"></div></div>
+
+<!-- Auto-save toast (top right) -->
+<div id="saveToast">✅ Guardado</div>
 
 <header>
   <h1>⚽ Polla Mundial 2026</h1>
@@ -226,15 +385,14 @@
   </div>
 </header>
 
-<!-- Rules section -->
+<!-- Rules -->
 <div class="rules-wrap">
   <button class="rules-toggle" id="rulesToggle" onclick="toggleRules()">
     <span>📋 Ver reglas de la polla</span>
-    <span class="arrow" id="rulesArrow">▼</span>
+    <span class="arrow">▼</span>
   </button>
   <div class="rules-body" id="rulesBody">
     <div class="rules-grid">
-
       <div class="rules-card">
         <h3>💰 Entrada y premios</h3>
         <ul>
@@ -244,7 +402,6 @@
           <li><span class="tag tag-amber">3.° lugar</span> 10% del pot</li>
         </ul>
       </div>
-
       <div class="rules-card">
         <h3>⚽ Puntuación</h3>
         <ul>
@@ -253,7 +410,6 @@
           <li><span class="tag tag-slate">0 pts</span> Resultado incorrecto</li>
         </ul>
       </div>
-
       <div class="rules-card">
         <h3>📌 Reglas generales</h3>
         <ul>
@@ -262,7 +418,6 @@
           <li><span class="tag tag-amber">Desempate</span> Más resultados exactos (3 pts) gana</li>
         </ul>
       </div>
-
       <div class="rules-card">
         <h3>💰 Side Pot</h3>
         <ul>
@@ -273,9 +428,7 @@
           <li><span class="tag tag-amber">Doble</span> Un jugador puede ganar ambos premios</li>
         </ul>
       </div>
-
     </div>
-
     <div class="rules-notice deadline">
       ⏰ <strong>Fecha límite:</strong>&nbsp; Enviar antes del <strong>10 de junio</strong> — las predicciones enviadas después no serán válidas.
     </div>
@@ -285,9 +438,46 @@
   </div>
 </div>
 
+<!-- Stats Summary -->
+<div class="stats-wrap">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-val" id="statFilled">0/72</div>
+      <div class="stat-lbl">Completados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statPct">0%</div>
+      <div class="stat-lbl">Progreso</div>
+    </div>
+    <div class="stat-card" id="statSPCard">
+      <div class="stat-val" id="statSP">—</div>
+      <div class="stat-lbl">Side Pot</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">216 pts</div>
+      <div class="stat-lbl">Pts máximos</div>
+    </div>
+  </div>
+</div>
+
+<!-- Entry ID -->
+<div class="entry-id-wrap">
+  <div class="entry-id-card">
+    <div class="eid-block">
+      <span class="eid-lbl">Entry ID</span>
+      <span class="eid-val" id="displayEid">WC26-····</span>
+    </div>
+    <div class="eid-block">
+      <span class="eid-lbl">Código verificación</span>
+      <span class="eid-val eid-code" id="displayCode">·····</span>
+    </div>
+    <span class="eid-ts" id="displayTs"></span>
+  </div>
+</div>
+
 <div class="name-box">
   <label for="nombre">Tu nombre:</label>
-  <input id="nombre" type="text" placeholder="Escribe tu nombre..." oninput="save()">
+  <input id="nombre" type="text" placeholder="Escribe tu nombre…" oninput="save()">
 </div>
 <div class="name-box">
   <label for="celular">Celular:</label>
@@ -319,63 +509,101 @@
 
 <!-- Action buttons -->
 <div class="actions-wrap">
-  <button class="btn-action" onclick="jumpToNext()">⬇️ Ir al siguiente vacío</button>
-  <button class="btn-action danger" onclick="clearAll()">🗑 Borrar todo</button>
+  <button class="btn-action" id="btnJumpNext" onclick="jumpToNext()">⬇️ Ir al siguiente vacío</button>
+  <button class="btn-action danger" id="btnClearAll" onclick="clearAll()">🗑 Borrar todo</button>
 </div>
 
 <div class="matches-wrap">
   <div id="matchList"></div>
 </div>
 
+<!-- Sticky download bar -->
 <div class="matches-wrap">
   <div class="sticky-bar">
-    <button class="btn-download" onclick="descargar()">⬇️ Descargar mi Polla</button>
-    <p class="tip">Descarga el archivo y envíaselo al organizador</p>
+    <button class="btn-download" id="btnDownload" onclick="descargar()">⬇️ Descargar mi Polla</button>
+    <div class="dl-row">
+      <button class="btn-pdf" id="btnPdf" onclick="descargarPDF()">🖨 Descargar PDF</button>
+    </div>
+    <p class="tip">⬇️ Descarga y envía tu polla por WhatsApp</p>
     <div class="wa-banner" id="waBanner">
-      <p><strong>✅ ¡Listo!</strong> Toca el botón para enviarlo por WhatsApp</p>
-      <button class="btn-wa" onclick="abrirWhatsapp()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.168 1.618 5.934L.057 23.882a.5.5 0 0 0 .604.625l6.109-1.598A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.007-1.371l-.358-.214-3.724.975.994-3.63-.234-.374A9.817 9.817 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
-        Enviar por WhatsApp
-      </button>
+      <p><strong>✅ ¡Listo!</strong> Toca para enviarlo por WhatsApp</p>
+      <div class="wa-btns">
+        <button class="btn-copy-msg" onclick="copiarMensaje()">📋 Copiar mensaje</button>
+        <button class="btn-wa" onclick="abrirWhatsapp()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.168 1.618 5.934L.057 23.882a.5.5 0 0 0 .604.625l6.109-1.598A11.954 11.954 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.007-1.371l-.358-.214-3.724.975.994-3.63-.234-.374A9.817 9.817 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+          Enviar por WhatsApp
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Final warning -->
+<div class="final-warning-wrap">
+  <div class="final-warning">⚠️ <span>Una vez enviado el archivo, no se aceptan cambios.</span></div>
+</div>
+
 <div id="toast"></div>
 
+<!-- Print / PDF section (hidden) -->
+<div id="printSection">
+  <div class="pr-header">
+    <h1>⚽ Polla Mundial 2026</h1>
+    <p>Predicciones — Fase de Grupos</p>
+  </div>
+  <div class="pr-meta" id="prMeta"></div>
+  <div class="pr-security" id="prSecurity"></div>
+  <table class="pr-table">
+    <thead>
+      <tr><th>#</th><th>Fecha</th><th>Hora ET</th><th>Partido</th><th>Grp</th><th>Predicción</th></tr>
+    </thead>
+    <tbody id="prRows"></tbody>
+  </table>
+  <div class="pr-footer">Generado por Polla Mundial 2026 · njyanir.github.io/polla-mundial</div>
+</div>
+
 <script>
+// ── Deadline & lock state ─────────────────────────────────────────────────────
+const DEADLINE = new Date('2026-06-10T23:59:59')
+const LOCKED   = new Date() > DEADLINE
+
 // ── Rules toggle ──────────────────────────────────────────────────────────────
 function toggleRules() {
   const btn  = document.getElementById('rulesToggle')
   const body = document.getElementById('rulesBody')
   const open = body.classList.toggle('open')
   btn.classList.toggle('open', open)
-
 }
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 function updateCountdown() {
-  const deadline = new Date('2026-06-10T23:59:59')
-  const now = new Date()
-  const diff = deadline - now
+  const diff = DEADLINE - new Date()
   const el   = document.getElementById('countdown')
   const tel  = document.getElementById('countdownTime')
-  if (diff <= 0) {
-    tel.textContent = '¡Plazo vencido!'
-    el.classList.add('urgent')
-    return
-  }
-  const d  = Math.floor(diff / 86400000)
-  const h  = Math.floor((diff % 86400000) / 3600000)
-  const m  = Math.floor((diff % 3600000)  / 60000)
-  const s  = Math.floor((diff % 60000)    / 1000)
-  tel.textContent = d > 0
-    ? `${d}d ${h}h ${m}m ${s}s`
-    : `${h}h ${m}m ${s}s`
+  if (diff <= 0) { tel.textContent = '¡Plazo vencido!'; el.classList.add('urgent'); return }
+  const d = Math.floor(diff / 86400000)
+  const h = Math.floor((diff % 86400000) / 3600000)
+  const m = Math.floor((diff % 3600000)  / 60000)
+  const s = Math.floor((diff % 60000)    / 1000)
+  tel.textContent = d > 0 ? `${d}d ${h}h ${m}m ${s}s` : `${h}h ${m}m ${s}s`
   if (diff < 3 * 86400000) el.classList.add('urgent')
 }
 updateCountdown()
 setInterval(updateCountdown, 1000)
+
+// ── Entry ID (persistent) ─────────────────────────────────────────────────────
+function getEntryId() {
+  let raw = localStorage.getItem('polla-2026-id')
+  if (!raw) {
+    const num   = Math.floor(1000 + Math.random() * 9000)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    let code = ''
+    for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)]
+    raw = JSON.stringify({ eid: `WC26-${num}`, code })
+    localStorage.setItem('polla-2026-id', raw)
+  }
+  return JSON.parse(raw)
+}
 
 // ── Flag emojis ───────────────────────────────────────────────────────────────
 const FLAGS = {
@@ -392,82 +620,81 @@ const FLAGS = {
   'GHANA':'🇬🇭','PANAMA':'🇵🇦','ENGLAND':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','CROATIA':'🇭🇷',
   'PORTUGAL':'🇵🇹','CONGO DR':'🇨🇩','UZBEKISTAN':'🇺🇿','COLOMBIA':'🇨🇴',
 }
-const f = t => FLAGS[t] ? FLAGS[t] + ' ' : ''
 
-// ── Match data + groups ───────────────────────────────────────────────────────
+// ── Match data (with kickoff times ET) ───────────────────────────────────────
 const partidos = [
-  {f:'Jun 11', l:'MEXICO',                  v:'SOUTH AFRICA'},
-  {f:'Jun 11', l:'SOUTH KOREA',             v:'CZECHIA'},
-  {f:'Jun 12', l:'CANADA',                  v:'BOSNIA AND HERZEGOVINA'},
-  {f:'Jun 12', l:'USA',                     v:'PARAGUAY'},
-  {f:'Jun 13', l:'HAITI',                   v:'SCOTLAND'},
-  {f:'Jun 13', l:'AUSTRALIA',               v:'TURKIYE'},
-  {f:'Jun 13', l:'BRAZIL',                  v:'MOROCCO'},
-  {f:'Jun 13', l:'QATAR',                   v:'SWITZERLAND'},
-  {f:'Jun 14', l:'IVORY COAST',             v:'ECUADOR'},
-  {f:'Jun 14', l:'GERMANY',                 v:'CURACAO'},
-  {f:'Jun 14', l:'NETHERLANDS',             v:'JAPAN'},
-  {f:'Jun 14', l:'SWEDEN',                  v:'TUNISIA'},
-  {f:'Jun 15', l:'SAUDI ARABIA',            v:'URUGUAY'},
-  {f:'Jun 15', l:'SPAIN',                   v:'CAPE VERDE'},
-  {f:'Jun 15', l:'IRAN',                    v:'NEW ZEALAND'},
-  {f:'Jun 15', l:'BELGIUM',                 v:'EGYPT'},
-  {f:'Jun 16', l:'FRANCE',                  v:'SENEGAL'},
-  {f:'Jun 16', l:'IRAQ',                    v:'NORWAY'},
-  {f:'Jun 16', l:'ARGENTINA',               v:'ALGERIA'},
-  {f:'Jun 16', l:'AUSTRIA',                 v:'JORDAN'},
-  {f:'Jun 17', l:'GHANA',                   v:'PANAMA'},
-  {f:'Jun 17', l:'ENGLAND',                 v:'CROATIA'},
-  {f:'Jun 17', l:'PORTUGAL',                v:'CONGO DR'},
-  {f:'Jun 17', l:'UZBEKISTAN',              v:'COLOMBIA'},
-  {f:'Jun 18', l:'CZECHIA',                 v:'SOUTH AFRICA'},
-  {f:'Jun 18', l:'SWITZERLAND',             v:'BOSNIA AND HERZEGOVINA'},
-  {f:'Jun 18', l:'CANADA',                  v:'QATAR'},
-  {f:'Jun 18', l:'MEXICO',                  v:'SOUTH KOREA'},
-  {f:'Jun 19', l:'BRAZIL',                  v:'HAITI'},
-  {f:'Jun 19', l:'SCOTLAND',                v:'MOROCCO'},
-  {f:'Jun 19', l:'TURKIYE',                 v:'PARAGUAY'},
-  {f:'Jun 19', l:'USA',                     v:'AUSTRALIA'},
-  {f:'Jun 20', l:'GERMANY',                 v:'IVORY COAST'},
-  {f:'Jun 20', l:'ECUADOR',                 v:'CURACAO'},
-  {f:'Jun 20', l:'NETHERLANDS',             v:'SWEDEN'},
-  {f:'Jun 20', l:'TUNISIA',                 v:'JAPAN'},
-  {f:'Jun 21', l:'URUGUAY',                 v:'CAPE VERDE'},
-  {f:'Jun 21', l:'SPAIN',                   v:'SAUDI ARABIA'},
-  {f:'Jun 21', l:'BELGIUM',                 v:'IRAN'},
-  {f:'Jun 21', l:'NEW ZEALAND',             v:'EGYPT'},
-  {f:'Jun 22', l:'NORWAY',                  v:'SENEGAL'},
-  {f:'Jun 22', l:'FRANCE',                  v:'IRAQ'},
-  {f:'Jun 22', l:'ARGENTINA',               v:'AUSTRIA'},
-  {f:'Jun 22', l:'JORDAN',                  v:'ALGERIA'},
-  {f:'Jun 23', l:'ENGLAND',                 v:'GHANA'},
-  {f:'Jun 23', l:'PANAMA',                  v:'CROATIA'},
-  {f:'Jun 23', l:'PORTUGAL',                v:'UZBEKISTAN'},
-  {f:'Jun 23', l:'COLOMBIA',                v:'CONGO DR'},
-  {f:'Jun 24', l:'SCOTLAND',                v:'BRAZIL'},
-  {f:'Jun 24', l:'MOROCCO',                 v:'HAITI'},
-  {f:'Jun 24', l:'SWITZERLAND',             v:'CANADA'},
-  {f:'Jun 24', l:'BOSNIA AND HERZEGOVINA',  v:'QATAR'},
-  {f:'Jun 24', l:'CZECHIA',                 v:'MEXICO'},
-  {f:'Jun 24', l:'SOUTH AFRICA',            v:'SOUTH KOREA'},
-  {f:'Jun 25', l:'CURACAO',                 v:'IVORY COAST'},
-  {f:'Jun 25', l:'ECUADOR',                 v:'GERMANY'},
-  {f:'Jun 25', l:'JAPAN',                   v:'SWEDEN'},
-  {f:'Jun 25', l:'TUNISIA',                 v:'NETHERLANDS'},
-  {f:'Jun 25', l:'TURKIYE',                 v:'USA'},
-  {f:'Jun 25', l:'PARAGUAY',                v:'AUSTRALIA'},
-  {f:'Jun 26', l:'NORWAY',                  v:'FRANCE'},
-  {f:'Jun 26', l:'SENEGAL',                 v:'IRAQ'},
-  {f:'Jun 26', l:'EGYPT',                   v:'IRAN'},
-  {f:'Jun 26', l:'NEW ZEALAND',             v:'BELGIUM'},
-  {f:'Jun 26', l:'CAPE VERDE',              v:'SAUDI ARABIA'},
-  {f:'Jun 26', l:'URUGUAY',                 v:'SPAIN'},
-  {f:'Jun 27', l:'PANAMA',                  v:'ENGLAND'},
-  {f:'Jun 27', l:'CROATIA',                 v:'GHANA'},
-  {f:'Jun 27', l:'ALGERIA',                 v:'AUSTRIA'},
-  {f:'Jun 27', l:'JORDAN',                  v:'ARGENTINA'},
-  {f:'Jun 27', l:'COLOMBIA',                v:'PORTUGAL'},
-  {f:'Jun 27', l:'CONGO DR',                v:'UZBEKISTAN'},
+  {f:'Jun 11',t:'5:00 PM', l:'MEXICO',                 v:'SOUTH AFRICA'},
+  {f:'Jun 11',t:'8:00 PM', l:'SOUTH KOREA',            v:'CZECHIA'},
+  {f:'Jun 12',t:'5:00 PM', l:'CANADA',                 v:'BOSNIA AND HERZEGOVINA'},
+  {f:'Jun 12',t:'8:00 PM', l:'USA',                    v:'PARAGUAY'},
+  {f:'Jun 13',t:'12:00 PM',l:'HAITI',                  v:'SCOTLAND'},
+  {f:'Jun 13',t:'3:00 PM', l:'AUSTRALIA',              v:'TURKIYE'},
+  {f:'Jun 13',t:'6:00 PM', l:'BRAZIL',                 v:'MOROCCO'},
+  {f:'Jun 13',t:'9:00 PM', l:'QATAR',                  v:'SWITZERLAND'},
+  {f:'Jun 14',t:'12:00 PM',l:'IVORY COAST',            v:'ECUADOR'},
+  {f:'Jun 14',t:'3:00 PM', l:'GERMANY',                v:'CURACAO'},
+  {f:'Jun 14',t:'6:00 PM', l:'NETHERLANDS',            v:'JAPAN'},
+  {f:'Jun 14',t:'9:00 PM', l:'SWEDEN',                 v:'TUNISIA'},
+  {f:'Jun 15',t:'12:00 PM',l:'SAUDI ARABIA',           v:'URUGUAY'},
+  {f:'Jun 15',t:'3:00 PM', l:'SPAIN',                  v:'CAPE VERDE'},
+  {f:'Jun 15',t:'6:00 PM', l:'IRAN',                   v:'NEW ZEALAND'},
+  {f:'Jun 15',t:'9:00 PM', l:'BELGIUM',                v:'EGYPT'},
+  {f:'Jun 16',t:'12:00 PM',l:'FRANCE',                 v:'SENEGAL'},
+  {f:'Jun 16',t:'3:00 PM', l:'IRAQ',                   v:'NORWAY'},
+  {f:'Jun 16',t:'6:00 PM', l:'ARGENTINA',              v:'ALGERIA'},
+  {f:'Jun 16',t:'9:00 PM', l:'AUSTRIA',                v:'JORDAN'},
+  {f:'Jun 17',t:'12:00 PM',l:'GHANA',                  v:'PANAMA'},
+  {f:'Jun 17',t:'3:00 PM', l:'ENGLAND',                v:'CROATIA'},
+  {f:'Jun 17',t:'6:00 PM', l:'PORTUGAL',               v:'CONGO DR'},
+  {f:'Jun 17',t:'9:00 PM', l:'UZBEKISTAN',             v:'COLOMBIA'},
+  {f:'Jun 18',t:'12:00 PM',l:'CZECHIA',                v:'SOUTH AFRICA'},
+  {f:'Jun 18',t:'3:00 PM', l:'SWITZERLAND',            v:'BOSNIA AND HERZEGOVINA'},
+  {f:'Jun 18',t:'6:00 PM', l:'CANADA',                 v:'QATAR'},
+  {f:'Jun 18',t:'9:00 PM', l:'MEXICO',                 v:'SOUTH KOREA'},
+  {f:'Jun 19',t:'12:00 PM',l:'BRAZIL',                 v:'HAITI'},
+  {f:'Jun 19',t:'3:00 PM', l:'SCOTLAND',               v:'MOROCCO'},
+  {f:'Jun 19',t:'6:00 PM', l:'TURKIYE',                v:'PARAGUAY'},
+  {f:'Jun 19',t:'9:00 PM', l:'USA',                    v:'AUSTRALIA'},
+  {f:'Jun 20',t:'12:00 PM',l:'GERMANY',                v:'IVORY COAST'},
+  {f:'Jun 20',t:'3:00 PM', l:'ECUADOR',                v:'CURACAO'},
+  {f:'Jun 20',t:'6:00 PM', l:'NETHERLANDS',            v:'SWEDEN'},
+  {f:'Jun 20',t:'9:00 PM', l:'TUNISIA',                v:'JAPAN'},
+  {f:'Jun 21',t:'12:00 PM',l:'URUGUAY',                v:'CAPE VERDE'},
+  {f:'Jun 21',t:'3:00 PM', l:'SPAIN',                  v:'SAUDI ARABIA'},
+  {f:'Jun 21',t:'6:00 PM', l:'BELGIUM',                v:'IRAN'},
+  {f:'Jun 21',t:'9:00 PM', l:'NEW ZEALAND',            v:'EGYPT'},
+  {f:'Jun 22',t:'12:00 PM',l:'NORWAY',                 v:'SENEGAL'},
+  {f:'Jun 22',t:'3:00 PM', l:'FRANCE',                 v:'IRAQ'},
+  {f:'Jun 22',t:'6:00 PM', l:'ARGENTINA',              v:'AUSTRIA'},
+  {f:'Jun 22',t:'9:00 PM', l:'JORDAN',                 v:'ALGERIA'},
+  {f:'Jun 23',t:'12:00 PM',l:'ENGLAND',                v:'GHANA'},
+  {f:'Jun 23',t:'3:00 PM', l:'PANAMA',                 v:'CROATIA'},
+  {f:'Jun 23',t:'6:00 PM', l:'PORTUGAL',               v:'UZBEKISTAN'},
+  {f:'Jun 23',t:'9:00 PM', l:'COLOMBIA',               v:'CONGO DR'},
+  {f:'Jun 24',t:'3:00 PM', l:'SCOTLAND',               v:'BRAZIL'},
+  {f:'Jun 24',t:'3:00 PM', l:'MOROCCO',                v:'HAITI'},
+  {f:'Jun 24',t:'6:00 PM', l:'SWITZERLAND',            v:'CANADA'},
+  {f:'Jun 24',t:'6:00 PM', l:'BOSNIA AND HERZEGOVINA', v:'QATAR'},
+  {f:'Jun 24',t:'9:00 PM', l:'CZECHIA',                v:'MEXICO'},
+  {f:'Jun 24',t:'9:00 PM', l:'SOUTH AFRICA',           v:'SOUTH KOREA'},
+  {f:'Jun 25',t:'3:00 PM', l:'CURACAO',                v:'IVORY COAST'},
+  {f:'Jun 25',t:'3:00 PM', l:'ECUADOR',                v:'GERMANY'},
+  {f:'Jun 25',t:'6:00 PM', l:'JAPAN',                  v:'SWEDEN'},
+  {f:'Jun 25',t:'6:00 PM', l:'TUNISIA',                v:'NETHERLANDS'},
+  {f:'Jun 25',t:'9:00 PM', l:'TURKIYE',                v:'USA'},
+  {f:'Jun 25',t:'9:00 PM', l:'PARAGUAY',               v:'AUSTRALIA'},
+  {f:'Jun 26',t:'3:00 PM', l:'NORWAY',                 v:'FRANCE'},
+  {f:'Jun 26',t:'3:00 PM', l:'SENEGAL',                v:'IRAQ'},
+  {f:'Jun 26',t:'6:00 PM', l:'EGYPT',                  v:'IRAN'},
+  {f:'Jun 26',t:'6:00 PM', l:'NEW ZEALAND',            v:'BELGIUM'},
+  {f:'Jun 26',t:'9:00 PM', l:'CAPE VERDE',             v:'SAUDI ARABIA'},
+  {f:'Jun 26',t:'9:00 PM', l:'URUGUAY',                v:'SPAIN'},
+  {f:'Jun 27',t:'3:00 PM', l:'PANAMA',                 v:'ENGLAND'},
+  {f:'Jun 27',t:'3:00 PM', l:'CROATIA',                v:'GHANA'},
+  {f:'Jun 27',t:'6:00 PM', l:'ALGERIA',                v:'AUSTRIA'},
+  {f:'Jun 27',t:'6:00 PM', l:'JORDAN',                 v:'ARGENTINA'},
+  {f:'Jun 27',t:'9:00 PM', l:'COLOMBIA',               v:'PORTUGAL'},
+  {f:'Jun 27',t:'9:00 PM', l:'CONGO DR',               v:'UZBEKISTAN'},
 ]
 
 const grupos = [
@@ -478,41 +705,58 @@ const grupos = [
   'G','G','K','K','J','J','L','L'
 ]
 
-// ── Short team names for cards ────────────────────────────────────────────────
+// ── Short team names ──────────────────────────────────────────────────────────
 const SHORT = {
-  'BOSNIA AND HERZEGOVINA': 'Bosnia',
-  'SOUTH AFRICA':  'S. Africa',
-  'SOUTH KOREA':   'S. Korea',
-  'SAUDI ARABIA':  'S. Arabia',
-  'IVORY COAST':   "C. d'Ivoire",
-  'NEW ZEALAND':   'New Zealand',
-  'CONGO DR':      'Congo DR',
-  'CAPE VERDE':    'Cape Verde',
+  'BOSNIA AND HERZEGOVINA':'Bosnia','SOUTH AFRICA':'S. Africa','SOUTH KOREA':'S. Korea',
+  'SAUDI ARABIA':'S. Arabia','IVORY COAST':"C. d'Ivoire",'NEW ZEALAND':'New Zealand',
+  'CONGO DR':'Congo DR','CAPE VERDE':'Cape Verde',
 }
 function capName(n) {
   if (SHORT[n]) return SHORT[n]
   return n.split(' ').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')
 }
 
+// ── Date helpers ──────────────────────────────────────────────────────────────
+const MON = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11}
+const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0)
+
+function matchDate(dateStr) {
+  const [m, d] = dateStr.split(' ')
+  return new Date(2026, MON[m], parseInt(d))
+}
+function matchStatus(dateStr) {
+  const d = matchDate(dateStr)
+  if (d.getTime() === todayMidnight.getTime()) return 'today'
+  return d < todayMidnight ? 'past' : 'upcoming'
+}
+
 // ── Render match cards ────────────────────────────────────────────────────────
 function renderMatches() {
   let html = '', lastDate = ''
   partidos.forEach((p, i) => {
+    const st = matchStatus(p.f)
     if (p.f !== lastDate) {
-      html += `<div class="date-sep-lbl"><span>📅 ${p.f}</span></div>`
+      const sepCls = st === 'today' ? 'date-sep-lbl sep-today'
+                   : st === 'past'  ? 'date-sep-lbl sep-past'
+                   : 'date-sep-lbl'
+      const badge = st === 'today' ? ' 🔴 HOY' : ''
+      html += `<div class="${sepCls}"><span>📅 ${p.f}${badge}</span></div>`
       lastDate = p.f
     }
     const grp = grupos[i] ? `<span class="mc-group">GRP ${grupos[i]}</span>` : ''
-    html += `<div class="match-card" id="mc_${i}">
+    const cardCls = 'match-card' + (st === 'today' ? ' mc-today' : st === 'past' ? ' mc-past' : '')
+    const timeCls = st === 'today' ? 'mc-time today' : 'mc-time'
+    html += `<div class="${cardCls}" id="mc_${i}">
       <div class="mc-team">
         <span class="mc-flag">${FLAGS[p.l]||'🏳️'}</span>
         <span class="mc-name">${capName(p.l)}</span>
         ${grp}
+        <span class="${timeCls}">${p.t} ET</span>
       </div>
       <div class="mc-inputs">
-        <input type="number" id="l_${i}" min="0" max="20" placeholder="–" oninput="onInput(${i})">
+        <input type="number" id="l_${i}" min="0" max="9" placeholder="–" oninput="onInput(${i})">
         <span class="mc-sep">–</span>
-        <input type="number" id="v_${i}" min="0" max="20" placeholder="–" oninput="onInput(${i})">
+        <input type="number" id="v_${i}" min="0" max="9" placeholder="–" oninput="onInput(${i})">
       </div>
       <div class="mc-team">
         <span class="mc-flag">${FLAGS[p.v]||'🏳️'}</span>
@@ -524,34 +768,40 @@ function renderMatches() {
 }
 renderMatches()
 
-// ── Keyboard: Tab from away score → next home score ───────────────────────────
+// ── Tab: away → next home ─────────────────────────────────────────────────────
 document.getElementById('matchList').addEventListener('keydown', e => {
   if (e.key !== 'Tab' || e.shiftKey) return
   const id = document.activeElement?.id
   if (!id || !id.startsWith('v_')) return
-  const i = parseInt(id.slice(2))
-  const next = document.getElementById(`l_${i + 1}`)
+  const next = document.getElementById(`l_${parseInt(id.slice(2)) + 1}`)
   if (next) { e.preventDefault(); next.focus() }
 })
 
-// ── Toast helper ──────────────────────────────────────────────────────────────
+// ── Toast helpers ─────────────────────────────────────────────────────────────
 let toastTimer
-function showToast(msg) {
+function showToast(msg, dur = 2800) {
   const el = document.getElementById('toast')
-  el.textContent = msg
-  el.classList.add('show')
+  el.textContent = msg; el.classList.add('show')
   clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800)
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur)
 }
 
-// ── Progress ──────────────────────────────────────────────────────────────────
+let saveToastTimer
+function showSaveToast() {
+  const el = document.getElementById('saveToast')
+  el.classList.add('show')
+  clearTimeout(saveToastTimer)
+  saveToastTimer = setTimeout(() => el.classList.remove('show'), 1400)
+}
+
+// ── Progress + Stats ──────────────────────────────────────────────────────────
 function updateProgress() {
   let filled = 0
   partidos.forEach((_, i) => {
     const lEl = document.getElementById(`l_${i}`)
     const vEl = document.getElementById(`v_${i}`)
-    const l = lEl.value, v = vEl.value
-    const hasBoth = l !== '' && v !== ''
+    if (!lEl || !vEl) return
+    const hasBoth = lEl.value !== '' && vEl.value !== ''
     if (hasBoth) filled++
     lEl.classList.toggle('filled', hasBoth)
     vEl.classList.toggle('filled', hasBoth)
@@ -559,25 +809,31 @@ function updateProgress() {
     if (card) card.classList.toggle('mc-filled', hasBoth)
   })
   const pct = Math.round(filled / partidos.length * 100)
-  document.getElementById('progressFill').style.width = pct + '%'
+  document.getElementById('progressFill').style.width   = pct + '%'
+  document.getElementById('miniProgressFill').style.width = pct + '%'
   document.getElementById('progressText').textContent =
     filled === partidos.length
       ? '✅ ¡Todos los partidos completados!'
       : `${filled} / ${partidos.length} partidos completados`
+  // Stats
+  document.getElementById('statFilled').textContent = `${filled}/72`
+  document.getElementById('statPct').textContent    = `${pct}%`
+  const spOn = document.getElementById('sidePot').checked
+  document.getElementById('statSP').textContent = spOn ? '✅ Sí' : '—'
+  document.getElementById('statSPCard').classList.toggle('sp-on', spOn)
 }
 
-// ── Side Pot toggle ───────────────────────────────────────────────────────────
+// ── Side Pot ──────────────────────────────────────────────────────────────────
 function onSidePot() {
   document.getElementById('spCard').classList.toggle('on', document.getElementById('sidePot').checked)
   save()
+  updateProgress()
 }
 
 // ── Auto-save ─────────────────────────────────────────────────────────────────
+let saveDeb
 function save() {
   try {
-    const nombre  = document.getElementById('nombre').value
-    const celular = document.getElementById('celular').value
-    const sidePot = document.getElementById('sidePot').checked
     const scores = {}
     partidos.forEach((_, i) => {
       scores[i] = [
@@ -585,55 +841,54 @@ function save() {
         document.getElementById(`v_${i}`).value
       ]
     })
-    localStorage.setItem('polla-2026', JSON.stringify({ nombre, celular, scores, sidePot }))
+    localStorage.setItem('polla-2026', JSON.stringify({
+      nombre:  document.getElementById('nombre').value,
+      celular: document.getElementById('celular').value,
+      sidePot: document.getElementById('sidePot').checked,
+      scores
+    }))
+    clearTimeout(saveDeb)
+    saveDeb = setTimeout(showSaveToast, 700)
   } catch(e) {}
 }
 
-// ── Score sanity check ────────────────────────────────────────────────────────
+// ── Score validation (max 9, warn ≥5) ────────────────────────────────────────
 function checkSanity(i) {
-  const l = parseInt(document.getElementById(`l_${i}`).value)
-  const v = parseInt(document.getElementById(`v_${i}`).value)
   const lEl = document.getElementById(`l_${i}`)
   const vEl = document.getElementById(`v_${i}`)
-  const unusual = (!isNaN(l) && l >= 6) || (!isNaN(v) && v >= 6)
-  if (unusual) {
-    lEl.classList.add('unusual')
-    vEl.classList.add('unusual')
-    showToast('⚠️ Resultado inusual — ¿estás seguro?')
-  } else {
-    lEl.classList.remove('unusual')
-    vEl.classList.remove('unusual')
-  }
+  let l = parseInt(lEl.value), v = parseInt(vEl.value)
+  if (!isNaN(l) && l < 0) { lEl.value = 0; l = 0 }
+  if (!isNaN(v) && v < 0) { vEl.value = 0; v = 0 }
+  if (!isNaN(l) && l > 9) { lEl.value = 9; l = 9 }
+  if (!isNaN(v) && v > 9) { vEl.value = 9; v = 9 }
+  const unusual = (!isNaN(l) && l >= 5) || (!isNaN(v) && v >= 5)
+  lEl.classList.toggle('unusual', unusual)
+  vEl.classList.toggle('unusual', unusual)
+  if (unusual) showToast('⚠️ Resultado inusual — ¿estás seguro?', 2000)
 }
 
-function onInput(i) {
-  checkSanity(i)
-  save()
-  updateProgress()
-}
+function onInput(i) { checkSanity(i); save(); updateProgress() }
 
 // ── Clear all ─────────────────────────────────────────────────────────────────
 function clearAll() {
   if (!confirm('¿Borrar todas tus predicciones? Esta acción no se puede deshacer.')) return
   partidos.forEach((_, i) => {
-    document.getElementById(`l_${i}`).value = ''
-    document.getElementById(`v_${i}`).value = ''
-    document.getElementById(`l_${i}`).classList.remove('filled', 'unusual')
-    document.getElementById(`v_${i}`).classList.remove('filled', 'unusual')
+    const lEl = document.getElementById(`l_${i}`)
+    const vEl = document.getElementById(`v_${i}`)
+    lEl.value = ''; vEl.value = ''
+    lEl.classList.remove('filled','unusual')
+    vEl.classList.remove('filled','unusual')
   })
-  save()
-  updateProgress()
+  save(); updateProgress()
   showToast('🗑 Predicciones borradas')
 }
 
 // ── Jump to next empty ────────────────────────────────────────────────────────
 function jumpToNext() {
   for (let i = 0; i < partidos.length; i++) {
-    const l = document.getElementById(`l_${i}`).value
-    const v = document.getElementById(`v_${i}`).value
-    if (l === '' || v === '') {
+    if (!document.getElementById(`l_${i}`).value || !document.getElementById(`v_${i}`).value) {
       const el = document.getElementById(`l_${i}`)
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.scrollIntoView({ behavior:'smooth', block:'center' })
       setTimeout(() => el.focus(), 400)
       return
     }
@@ -652,119 +907,188 @@ try {
       document.getElementById('spCard').classList.add('on')
     }
     if (saved.scores) {
-      let anyFilled = false
-      Object.entries(saved.scores).forEach(([i, [l, v]]) => {
+      let any = false
+      Object.entries(saved.scores).forEach(([i,[l,v]]) => {
         const lEl = document.getElementById(`l_${i}`)
         const vEl = document.getElementById(`v_${i}`)
-        if (lEl && l !== '') { lEl.value = l; anyFilled = true }
-        if (vEl && v !== '') { vEl.value = v; anyFilled = true }
+        if (lEl && l !== '') { lEl.value = l; any = true }
+        if (vEl && v !== '') { vEl.value = v; any = true }
       })
-      if (anyFilled) {
+      if (any) {
         document.getElementById('restoreNote').style.display = ''
-        setTimeout(() => { document.getElementById('restoreNote').style.display = 'none' }, 4000)
+        setTimeout(() => document.getElementById('restoreNote').style.display = 'none', 4000)
       }
     }
-    updateProgress()
   }
 } catch(e) {}
+updateProgress()
 
-// ── Build workbook (shared) ───────────────────────────────────────────────────
+// ── Display Entry ID on load ──────────────────────────────────────────────────
+;(function() {
+  const { eid, code } = getEntryId()
+  document.getElementById('displayEid').textContent  = eid
+  document.getElementById('displayCode').textContent = code
+  document.getElementById('displayTs').textContent   =
+    new Date().toLocaleDateString('es', { day:'numeric', month:'short', year:'numeric' })
+})()
+
+// ── Build Excel workbook ──────────────────────────────────────────────────────
 function buildWorkbook(nombre) {
+  const { eid, code } = getEntryId()
   const celular = document.getElementById('celular').value.trim()
+  const ts = new Date().toLocaleString('es', { dateStyle:'short', timeStyle:'short' })
   const rows = [
     [],
-    ['NOMBRE',  nombre],
-    ['CELULAR', celular],
-    ['SIDE POT', document.getElementById('sidePot').checked ? 'SI' : 'NO'],
+    ['NOMBRE',      nombre],
+    ['CELULAR',     celular],
+    ['SIDE POT',    document.getElementById('sidePot').checked ? 'SI' : 'NO'],
     [],
-    ['Date', 'Match', 'Score'],
+    ['ENTRY ID',    eid],
+    ['SUBMITTED',   ts],
+    ['VERIFY CODE', code],
+    [],
+    ['Date','Time ET','Match','Score'],
   ]
   partidos.forEach((p, i) => {
     const l = document.getElementById(`l_${i}`).value
     const v = document.getElementById(`v_${i}`).value
-    const score = (l !== '' && v !== '') ? `${l}-${v}` : ''
-    rows.push([p.f, `${p.l} VS ${p.v}`, score])
+    rows.push([p.f, p.t, `${p.l} VS ${p.v}`, (l !== '' && v !== '') ? `${l}-${v}` : ''])
   })
 
   const wb = XLSX.utils.book_new()
   const ws = XLSX.utils.aoa_to_sheet(rows)
-  ws['!cols'] = [{ wch: 10.83 }, { wch: 47.5 }, { wch: 11 }]
+  ws['!cols'] = [{wch:10},{wch:10},{wch:47},{wch:11}]
 
-  const headerStyle = { font:{bold:true,name:'Arial'}, alignment:{horizontal:'center',vertical:'center'} }
-  const dateStyle   = { font:{name:'Arial'}, alignment:{horizontal:'center',vertical:'center'} }
-  const scoreStyle  = { font:{name:'Arial'}, alignment:{horizontal:'center',vertical:'center'},
-    border:{top:{style:'thin',color:{rgb:'000000'}},bottom:{style:'thin',color:{rgb:'000000'}}} }
+  const bold   = {font:{bold:true,name:'Arial'},alignment:{horizontal:'center',vertical:'center'}}
+  const center = {font:{name:'Arial'},alignment:{horizontal:'center',vertical:'center'}}
+  const score  = {font:{name:'Arial'},alignment:{horizontal:'center',vertical:'center'},
+    border:{top:{style:'thin',color:{rgb:'000000'}},bottom:{style:'thin',color:{rgb:'000000'}}}}
 
-  ;['A6','B6','C6'].forEach(ref => { if(ws[ref]) ws[ref].s = headerStyle })
-  if(ws['A2']) ws['A2'].s = {font:{bold:true,name:'Arial'},alignment:{horizontal:'center',vertical:'center'}}
+  ;['A10','B10','C10','D10'].forEach(r => { if(ws[r]) ws[r].s = bold })
+  if(ws['A2']) ws['A2'].s = bold
 
-  for(let r=6; r<=77; r++){
-    const aRef = XLSX.utils.encode_cell({r,c:0})
-    const cRef = XLSX.utils.encode_cell({r,c:2})
-    if(ws[aRef]) ws[aRef].s = dateStyle
-    if(!ws[cRef]) ws[cRef] = {v:'',t:'s'}
-    ws[cRef].s = scoreStyle
+  for(let r = 10; r <= 81; r++) {
+    const a = XLSX.utils.encode_cell({r,c:0})
+    const d = XLSX.utils.encode_cell({r,c:3})
+    if(ws[a]) ws[a].s = center
+    if(!ws[d]) ws[d] = {v:'',t:'s'}
+    ws[d].s = score
   }
 
   XLSX.utils.book_append_sheet(wb, ws, 'World Cup 2026')
   return wb
 }
 
-function excelFileName(nombre) {
-  return `polla-${nombre.toLowerCase().replace(/\s+/g,'-')}.xlsx`
-}
+function excelFileName(n) { return `polla-${n.toLowerCase().replace(/\s+/g,'-')}.xlsx` }
 
 // ── Download Excel ────────────────────────────────────────────────────────────
 function descargar() {
   const nombre = document.getElementById('nombre').value.trim()
-  if (!nombre) {
-    alert('Por favor escribe tu nombre antes de descargar.')
-    document.getElementById('nombre').focus()
-    return
-  }
-
+  if (!nombre) { alert('Por favor escribe tu nombre antes de descargar.'); document.getElementById('nombre').focus(); return }
   let unfilled = 0
-  partidos.forEach((_, i) => {
-    const l = document.getElementById(`l_${i}`).value
-    const v = document.getElementById(`v_${i}`).value
-    if (l === '' || v === '') unfilled++
+  partidos.forEach((_,i) => {
+    if (!document.getElementById(`l_${i}`).value || !document.getElementById(`v_${i}`).value) unfilled++
   })
   if (unfilled > 0) {
-    const ok = confirm(`Tienes ${unfilled} partido${unfilled > 1 ? 's' : ''} sin predicción.\n¿Descargar de todas formas? (los vacíos no sumarán puntos)`)
-    if (!ok) return
+    if (!confirm(`Tienes ${unfilled} partido${unfilled>1?'s':''} sin predicción.\n¿Descargar de todas formas? (los vacíos no sumarán puntos)`)) return
   }
-
   const wb = buildWorkbook(nombre)
   save()
   XLSX.writeFile(wb, excelFileName(nombre), { cellStyles: true })
-
-  // Show WhatsApp banner after download
   document.getElementById('waBanner').classList.add('show')
 }
 
-// ── Open WhatsApp with nudge message ─────────────────────────────────────────
+// ── WhatsApp share ────────────────────────────────────────────────────────────
 async function abrirWhatsapp() {
-  const nombre = document.getElementById('nombre').value.trim()
+  const nombre   = document.getElementById('nombre').value.trim()
   const fileName = excelFileName(nombre)
-
-  // Try Web Share API first (shares the actual file on mobile)
-  const wb      = buildWorkbook(nombre)
-  const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true })
-  const file    = new File([wbArray], fileName,
-    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: 'Polla Mundial 2026', text: `Mis predicciones — ${nombre} ⚽` })
-      return
-    } catch(e) {
-      if (e.name === 'AbortError') return  // user cancelled, do nothing
-    }
+  const wb       = buildWorkbook(nombre)
+  const wbArr    = XLSX.write(wb, {bookType:'xlsx',type:'array',cellStyles:true})
+  const file     = new File([wbArr], fileName,
+    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+  if (navigator.canShare && navigator.canShare({files:[file]})) {
+    try { await navigator.share({files:[file],title:'Polla Mundial 2026',text:`Mis predicciones — ${nombre} ⚽`}); return }
+    catch(e) { if (e.name === 'AbortError') return }
   }
-
-  // Fallback: open WhatsApp with a text message (works on all browsers)
   const msg = `Hola! Te mando mis predicciones para la Polla Mundial 2026 ⚽🏆\nAdjunto el archivo: ${fileName}`
   location.href = 'https://wa.me/66722100?text=' + encodeURIComponent(msg)
+}
+
+// ── Copy WhatsApp message ─────────────────────────────────────────────────────
+function copiarMensaje() {
+  const nombre = document.getElementById('nombre').value.trim() || '(sin nombre)'
+  const { eid } = getEntryId()
+  let filled = 0
+  partidos.forEach((_,i) => {
+    if (document.getElementById(`l_${i}`).value !== '' &&
+        document.getElementById(`v_${i}`).value !== '') filled++
+  })
+  const msg =
+    `Hola! Aquí van mis predicciones para la Polla Mundial 2026 ⚽🏆\n` +
+    `Nombre: ${nombre}\n` +
+    `Partidos completados: ${filled}/72\n` +
+    `ID de entrada: ${eid}\n` +
+    `(Adjunto el archivo Excel con todas mis predicciones)`
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(msg)
+      .then(()  => showToast('📋 Mensaje copiado al portapapeles'))
+      .catch(() => showToast('⚠️ No se pudo copiar'))
+  } else {
+    showToast('⚠️ Función no disponible en este navegador')
+  }
+}
+
+// ── PDF export ────────────────────────────────────────────────────────────────
+function descargarPDF() {
+  const nombre  = document.getElementById('nombre').value.trim()  || '—'
+  const celular = document.getElementById('celular').value.trim() || '—'
+  const spOn    = document.getElementById('sidePot').checked
+  const { eid, code } = getEntryId()
+  const ts = new Date().toLocaleString('es', { dateStyle:'long', timeStyle:'short' })
+
+  document.getElementById('prMeta').innerHTML = `
+    <div class="pr-meta-item"><label>Nombre</label><span>${nombre}</span></div>
+    <div class="pr-meta-item"><label>Celular</label><span>${celular}</span></div>
+    <div class="pr-meta-item"><label>Side Pot</label><span>${spOn ? '✅ Sí' : '❌ No'}</span></div>
+    <div class="pr-meta-item"><label>Fecha</label><span style="font-size:12px">${ts}</span></div>`
+
+  document.getElementById('prSecurity').innerHTML = `
+    <div class="ps-block"><span class="ps-lbl">Entry ID</span><span class="ps-val">${eid}</span></div>
+    <div class="ps-block"><span class="ps-lbl">Código verificación</span><span class="ps-val">${code}</span></div>
+    <div class="ps-block"><span class="ps-lbl">Generado</span><span class="ps-val ps-ts">${ts}</span></div>`
+
+  let rows = ''
+  partidos.forEach((p, i) => {
+    const l = document.getElementById(`l_${i}`).value
+    const v = document.getElementById(`v_${i}`).value
+    const hasScore = l !== '' && v !== ''
+    rows += `<tr>
+      <td style="color:#94a3b8;font-size:11px">${i+1}</td>
+      <td>${p.f}</td>
+      <td style="color:#64748b">${p.t}</td>
+      <td><b>${capName(p.l)}</b> vs <b>${capName(p.v)}</b></td>
+      <td style="color:#94a3b8;text-align:center">${grupos[i]||''}</td>
+      <td class="${hasScore ? 'pr-score' : 'pr-score empty'}">${hasScore ? `${l} — ${v}` : '—'}</td>
+    </tr>`
+  })
+  document.getElementById('prRows').innerHTML = rows
+
+  const section = document.getElementById('printSection')
+  section.style.display = 'block'
+  setTimeout(() => {
+    window.print()
+    setTimeout(() => section.style.display = 'none', 800)
+  }, 120)
+}
+
+// ── Lock form after deadline ──────────────────────────────────────────────────
+if (LOCKED) {
+  document.getElementById('lockedBanner').style.display = 'flex'
+  document.querySelectorAll('input').forEach(el => el.disabled = true)
+  document.getElementById('btnJumpNext').disabled = true
+  document.getElementById('btnClearAll').disabled = true
+  document.getElementById('btnDownload').disabled = true
+  document.getElementById('btnPdf').disabled = true
 }
 </script>
 
