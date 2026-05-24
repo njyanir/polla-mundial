@@ -138,6 +138,8 @@
     }
     .btn-action:hover { background: #f8fafc; border-color: #cbd5e1 }
     .btn-action.danger:hover { background: #fff1f2; border-color: #fca5a5; color: #dc2626 }
+    .btn-action.save { color: #16a34a; border-color: #86efac }
+    .btn-action.save:hover { background: #f0fdf4; border-color: #4ade80 }
     .btn-action:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none }
 
     /* ── Match Cards ── */
@@ -458,6 +460,7 @@
 <!-- Action buttons -->
 <div class="actions-wrap">
   <button class="btn-action" id="btnJumpNext" onclick="jumpToNext()">⬇️ Ir al siguiente vacío</button>
+  <button class="btn-action save" id="btnSave" onclick="guardar()">💾 Guardar</button>
   <button class="btn-action danger" id="btnClearAll" onclick="clearAll()">🗑 Borrar todo</button>
 </div>
 
@@ -773,7 +776,7 @@ function onSidePot() {
   updateProgress()
 }
 
-// ── Save (called only on Download) ───────────────────────────────────────────
+// ── Save ─────────────────────────────────────────────────────────────────────
 function save() {
   try {
     const scores = {}
@@ -790,6 +793,11 @@ function save() {
       scores
     }))
   } catch(e) {}
+}
+
+function guardar() {
+  save()
+  showToast('💾 ¡Predicciones guardadas!', 2000)
 }
 
 // ── Score validation (max 9, warn ≥5) ────────────────────────────────────────
