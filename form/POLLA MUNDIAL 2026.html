@@ -530,6 +530,17 @@ function toggleRules() {
   btn.classList.toggle('open', open)
 }
 
+// ── Safe timestamp (Safari-compatible, no dateStyle/timeStyle) ───────────────
+function fmtDate(date) {
+  var n = date || new Date()
+  var dd   = String(n.getDate()).padStart(2,'0')
+  var mm   = String(n.getMonth()+1).padStart(2,'0')
+  var yyyy = n.getFullYear()
+  var hh   = String(n.getHours()).padStart(2,'0')
+  var mi   = String(n.getMinutes()).padStart(2,'0')
+  return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + mi
+}
+
 // ── Countdown ─────────────────────────────────────────────────────────────────
 function updateCountdown() {
   const diff = DEADLINE - new Date()
@@ -546,16 +557,17 @@ function updateCountdown() {
 updateCountdown()
 setInterval(updateCountdown, 1000)
 
-// ── Entry ID (persistent) ─────────────────────────────────────────────────────
+// ── Entry ID (persistent, localStorage-safe) ─────────────────────────────────
 function getEntryId() {
-  let raw = localStorage.getItem('polla-2026-id')
+  let raw = null
+  try { raw = localStorage.getItem('polla-2026-id') } catch(e) {}
   if (!raw) {
     const num   = Math.floor(1000 + Math.random() * 9000)
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
     let code = ''
     for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)]
     raw = JSON.stringify({ eid: `WC26-${num}`, code })
-    localStorage.setItem('polla-2026-id', raw)
+    try { localStorage.setItem('polla-2026-id', raw) } catch(e) {}
   }
   return JSON.parse(raw)
 }
@@ -721,7 +733,7 @@ function renderMatches() {
   })
   document.getElementById('matchList').innerHTML = html
 }
-renderMatches()
+try { renderMatches() } catch(e) { console.error('renderMatches failed:', e) }
 
 // ── Tab: away → next home ─────────────────────────────────────────────────────
 document.getElementById('matchList').addEventListener('keydown', e => {
@@ -879,7 +891,7 @@ getEntryId()
 function buildWorkbook(nombre) {
   const { eid, code } = getEntryId()
   const celular = document.getElementById('celular').value.trim()
-  const ts = new Date().toLocaleString('es', { dateStyle:'short', timeStyle:'short' })
+  const ts = fmtDate()
   const rows = [
     [],
     ['NOMBRE',      nombre],
@@ -926,6 +938,10 @@ function excelFileName(n) { return `polla-${n.toLowerCase().replace(/\s+/g,'-')}
 
 // ── Download Excel ────────────────────────────────────────────────────────────
 function descargar() {
+  if (typeof XLSX === 'undefined') {
+    alert('El exportador aún se está cargando. Espera un momento e intenta de nuevo.')
+    return
+  }
   const nombre = document.getElementById('nombre').value.trim()
   if (!nombre) { alert('Por favor escribe tu nombre antes de descargar.'); document.getElementById('nombre').focus(); return }
   let unfilled = 0
@@ -943,18 +959,47 @@ function descargar() {
 
 // ── WhatsApp share ────────────────────────────────────────────────────────────
 async function abrirWhatsapp() {
+  if (typeof XLSX === 'undefined') {
+    alert('El exportador aún se está cargando. Espera un momento e intenta de nuevo.')
+    return
+  }
   const nombre   = document.getElementById('nombre').value.trim()
   const fileName = excelFileName(nombre)
-  const wb       = buildWorkbook(nombre)
-  const wbArr    = XLSX.write(wb, {bookType:'xlsx',type:'array',cellStyles:true})
-  const file     = new File([wbArr], fileName,
-    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
-  if (navigator.canShare && navigator.canShare({files:[file]})) {
-    try { await navigator.share({files:[file],title:'Polla Mundial 2026',text:`Mis predicciones — ${nombre} ⚽`}); return }
-    catch(e) { if (e.name === 'AbortError') return }
-  }
-  const msg = `Hola! Te mando mis predicciones para la Polla Mundial 2026 ⚽🏆\nAdjunto el archivo: ${fileName}`
+  const msg      = 'Hola! Te mando mis predicciones para la Polla Mundial 2026 ⚽🏆\nAdjunto el archivo: ' + fileName
+  try {
+    const wb    = buildWorkbook(nombre)
+    const wbArr = XLSX.write(wb, {bookType:'xlsx',type:'array',cellStyles:true})
+    const file  = new File([wbArr], fileName,
+      {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+    var canShare = false
+    try { canShare = !!(navigator.canShare && navigator.share && navigator.canShare({files:[file]})) }
+    catch(e) { canShare = false }
+    if (canShare) {
+      try { await navigator.share({files:[file],title:'Polla Mundial 2026',text:'Mis predicciones — ' + nombre + ' ⚽'}); return }
+      catch(e) { if (e.name === 'AbortError') return }
+    }
+  } catch(e) { console.error('share prep failed:', e) }
   location.href = 'https://wa.me/66722100?text=' + encodeURIComponent(msg)
+}
+
+// ── Clipboard helper (Safari-safe with execCommand fallback) ──────────────────
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).then(function(){ return true }).catch(function(){ return copyLegacy(text) })
+  }
+  return Promise.resolve(copyLegacy(text))
+}
+function copyLegacy(text) {
+  try {
+    var ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none'
+    document.body.appendChild(ta)
+    ta.focus(); ta.select()
+    var ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch(e) { return false }
 }
 
 // ── Copy WhatsApp message ─────────────────────────────────────────────────────
@@ -962,23 +1007,19 @@ function copiarMensaje() {
   const nombre = document.getElementById('nombre').value.trim() || '(sin nombre)'
   const { eid } = getEntryId()
   let filled = 0
-  partidos.forEach((_,i) => {
-    if (document.getElementById(`l_${i}`).value !== '' &&
-        document.getElementById(`v_${i}`).value !== '') filled++
+  partidos.forEach(function(_,i) {
+    if (document.getElementById('l_'+i).value !== '' &&
+        document.getElementById('v_'+i).value !== '') filled++
   })
   const msg =
-    `Hola! Aquí van mis predicciones para la Polla Mundial 2026 ⚽🏆\n` +
-    `Nombre: ${nombre}\n` +
-    `Partidos completados: ${filled}/72\n` +
-    `ID de entrada: ${eid}\n` +
-    `(Adjunto el archivo Excel con todas mis predicciones)`
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(msg)
-      .then(()  => showToast('📋 Mensaje copiado al portapapeles'))
-      .catch(() => showToast('⚠️ No se pudo copiar'))
-  } else {
-    showToast('⚠️ Función no disponible en este navegador')
-  }
+    'Hola! Aquí van mis predicciones para la Polla Mundial 2026 ⚽🏆\n' +
+    'Nombre: ' + nombre + '\n' +
+    'Partidos completados: ' + filled + '/72\n' +
+    'ID de entrada: ' + eid + '\n' +
+    '(Adjunto el archivo Excel con todas mis predicciones)'
+  copyText(msg).then(function(ok){
+    showToast(ok ? '📋 Mensaje copiado al portapapeles' : '⚠️ No se pudo copiar automáticamente')
+  })
 }
 
 // ── PDF export ────────────────────────────────────────────────────────────────
@@ -987,7 +1028,7 @@ function descargarPDF() {
   const celular = document.getElementById('celular').value.trim() || '—'
   const spOn    = document.getElementById('sidePot').checked
   const { eid, code } = getEntryId()
-  const ts = new Date().toLocaleString('es', { dateStyle:'long', timeStyle:'short' })
+  const ts = fmtDate()
 
   document.getElementById('prMeta').innerHTML = `
     <div class="pr-meta-item"><label>Nombre</label><span>${nombre}</span></div>
@@ -1025,13 +1066,15 @@ function descargarPDF() {
 }
 
 // ── Lock form after deadline ──────────────────────────────────────────────────
-if (LOCKED) {
-  document.getElementById('lockedBanner').style.display = 'flex'
-  document.querySelectorAll('input').forEach(el => el.disabled = true)
-  document.getElementById('btnJumpNext').disabled = true
-  document.getElementById('btnClearAll').disabled = true
-  document.getElementById('btnDownload').disabled = true
-}
+try {
+  if (LOCKED) {
+    document.getElementById('lockedBanner').style.display = 'flex'
+    document.querySelectorAll('input').forEach(function(el){ el.disabled = true })
+    document.getElementById('btnJumpNext').disabled = true
+    document.getElementById('btnClearAll').disabled = true
+    document.getElementById('btnDownload').disabled = true
+  }
+} catch(e) { console.error('lockForm failed:', e) }
 </script>
 
 </body>
