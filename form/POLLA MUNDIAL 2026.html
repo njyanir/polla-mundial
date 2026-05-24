@@ -30,14 +30,6 @@
     }
 
     /* ── Save toast (top-right) ── */
-    #saveToast {
-      position: fixed; top: 16px; right: 16px;
-      background: #166534; color: white; padding: 8px 14px;
-      border-radius: 8px; font-size: 12px; font-weight: 600;
-      opacity: 0; transition: opacity .4s; pointer-events: none; z-index: 200;
-      white-space: nowrap;
-    }
-    #saveToast.show { opacity: 1 }
 
     /* ── Header ── */
     header {
@@ -367,8 +359,6 @@
 <!-- Mini progress strip (sticky, just below header on scroll) -->
 <div class="mini-progress"><div class="mini-progress-fill" id="miniProgressFill"></div></div>
 
-<!-- Auto-save toast (top right) -->
-<div id="saveToast">✅ Guardado</div>
 
 <header>
   <h1>⚽ Polla Mundial 2026 <span style="font-size:13px;font-weight:600;opacity:.65;display:block;margin-top:3px;letter-spacing:.02em">versión OLD SCHOOL</span></h1>
@@ -435,11 +425,11 @@
 
 <div class="name-box">
   <label for="nombre">Tu nombre:</label>
-  <input id="nombre" type="text" placeholder="Escribe tu nombre…" oninput="save()">
+  <input id="nombre" type="text" placeholder="Escribe tu nombre…">
 </div>
 <div class="name-box">
   <label for="celular">Celular:</label>
-  <input id="celular" type="tel" placeholder="+1 000 000 0000" oninput="save()">
+  <input id="celular" type="tel" placeholder="+1 000 000 0000">
 </div>
 
 <!-- Side Pot -->
@@ -753,13 +743,6 @@ function showToast(msg, dur = 2800) {
   toastTimer = setTimeout(() => el.classList.remove('show'), dur)
 }
 
-let saveToastTimer
-function showSaveToast() {
-  const el = document.getElementById('saveToast')
-  el.classList.add('show')
-  clearTimeout(saveToastTimer)
-  saveToastTimer = setTimeout(() => el.classList.remove('show'), 1400)
-}
 
 // ── Progress + Stats ──────────────────────────────────────────────────────────
 function updateProgress() {
@@ -787,12 +770,10 @@ function updateProgress() {
 // ── Side Pot ──────────────────────────────────────────────────────────────────
 function onSidePot() {
   document.getElementById('spCard').classList.toggle('on', document.getElementById('sidePot').checked)
-  save()
   updateProgress()
 }
 
-// ── Auto-save ─────────────────────────────────────────────────────────────────
-let saveDeb
+// ── Save (called only on Download) ───────────────────────────────────────────
 function save() {
   try {
     const scores = {}
@@ -808,8 +789,6 @@ function save() {
       sidePot: document.getElementById('sidePot').checked,
       scores
     }))
-    clearTimeout(saveDeb)
-    saveDeb = setTimeout(showSaveToast, 700)
   } catch(e) {}
 }
 
@@ -828,7 +807,7 @@ function checkSanity(i) {
   if (unusual) showToast('⚠️ Resultado inusual — ¿estás seguro?', 2000)
 }
 
-function onInput(i) { checkSanity(i); save(); updateProgress() }
+function onInput(i) { checkSanity(i); updateProgress() }
 
 // ── Clear all ─────────────────────────────────────────────────────────────────
 function clearAll() {
@@ -840,7 +819,7 @@ function clearAll() {
     lEl.classList.remove('filled','unusual')
     vEl.classList.remove('filled','unusual')
   })
-  save(); updateProgress()
+  updateProgress()
   showToast('🗑 Predicciones borradas')
 }
 
