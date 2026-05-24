@@ -10,7 +10,7 @@
   <link rel="manifest" href="../manifest.json">
   <link rel="apple-touch-icon" href="../icons/icon-192.png">
   <title>⚽ Polla Mundial 2026 — versión OLD SCHOOL</title>
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" defer></script>
   <style>
     /* ── Reset ── */
     * { box-sizing: border-box; margin: 0; padding: 0 }
@@ -525,7 +525,7 @@
 
 <script>
 // ── Deadline & lock state ─────────────────────────────────────────────────────
-const DEADLINE = new Date('2026-06-10T23:59:59')
+const DEADLINE = new Date(2026, 5, 10, 23, 59, 59)
 const LOCKED   = new Date() > DEADLINE
 
 // ── Rules toggle ──────────────────────────────────────────────────────────────
