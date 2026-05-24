@@ -1209,7 +1209,7 @@ td.em{color:#1e293b}
 .cmp-table tbody tr:last-child{border-bottom:none}
 .cmp-table td{padding:7px 10px;color:#e2e8f0;vertical-align:middle;white-space:nowrap}
 .cmp-table td.date-c{color:#334155;font-size:10px;text-align:center;width:48px}
-.cmp-table td.match-c{font-weight:600;min-width:170px}
+.cmp-table td.match-c{font-weight:600;min-width:130px;max-width:160px}
 .cmp-table td.res-c{text-align:center;width:70px;font-weight:700}
 .cmp-table td.pred-c{text-align:center;font-weight:700;width:80px}
 .cmp-table td.pts-c{text-align:center;font-weight:800;width:34px;font-size:11px}
@@ -1219,7 +1219,7 @@ td.em{color:#1e293b}
 .cmp-table td.em{color:#1e293b}
 .cmp-table .sep-c td{background:#080f1e;color:#f59e0b;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 10px;border-top:2px solid rgba(245,158,11,.1)}
 .cmp-sc{position:sticky;z-index:2}
-.cmp-sc-0{left:0}.cmp-sc-1{left:48px}.cmp-sc-2{left:218px;box-shadow:3px 0 10px rgba(0,0,0,.7)}
+.cmp-sc-0{left:0}.cmp-sc-1{left:48px}.cmp-sc-2{left:178px;box-shadow:3px 0 10px rgba(0,0,0,.7)}
 .cmp-table tbody tr td.cmp-sc{background:#0f172a}
 .cmp-table .sep-c td.cmp-sc{background:#080f1e}
 .cmp-table thead th.cmp-sc{background:#080f1e;z-index:7}
@@ -1292,6 +1292,8 @@ const FLAGS=${bFlags};
 const MEDALS=['🥇','🥈','🥉'];
 const fl=t=>FLAGS[t]?FLAGS[t]+' ':'';
 const ini=n=>n.trim().split(/\\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const SHORT={'BOSNIA AND HERZEGOVINA':'Bosnia','SOUTH AFRICA':'S.Africa','SOUTH KOREA':'S.Korea','SAUDI ARABIA':'S.Arabia','IVORY COAST':'C.Ivoire','NEW ZEALAND':'NZ','CONGO DR':'Congo','CAPE VERDE':'C.Verde','UNITED STATES':'USA'};
+const sn=n=>SHORT[n]||(n.charAt(0)+n.slice(1).toLowerCase());
 function calcPts(a,p){if(!a||!p)return null;const nm=s=>s.trim().replace(/\\s*-\\s*/,'-');const an=nm(a),pn=nm(p);if(!an||!pn)return null;if(an===pn)return 3;const[al,av]=an.split('-').map(Number),[pl,pv]=pn.split('-').map(Number);if([al,av,pl,pv].some(isNaN))return null;return Math.sign(al-av)===Math.sign(pl-pv)?1:0}
 function stats(pl){let pts=0,ex=0,co=0;pl.scores.forEach((s,i)=>{const p=calcPts(ACTUALS[i],s);if(p===3){pts+=3;ex++}else if(p===1){pts+=1;co++}});return{pts,ex,co}}
 const ranked=PLAYERS.map((pl,j)=>({...stats(pl),pl,j})).sort((a,b)=>b.pts-a.pts||b.ex-a.ex||b.co-a.co);
@@ -1369,7 +1371,7 @@ function open2(idx){
     const pred=pl.scores[i]||'',res=ACTUALS[i]||'',pts=calcPts(res,pred);
     const pc=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';
     const ptc=pts===3?'pts-ex':pts===1?'pts-co':pts===0?'pts-wr':'pts-bl';
-    h+='<tr><td class="date-col tc">'+m.f+'</td><td class="match-col">'+fl(m.l)+m.l+' <span style="color:#475569">vs</span> '+fl(m.v)+m.v+'</td><td class="tc" style="font-weight:700">'+(res||'\\u2013')+'</td><td class="pred-col '+pc+'">'+(pred||'\\u2013')+'</td><td class="pts-col '+ptc+'">'+(pts!==null?pts:'\\u2013')+'</td></tr>';
+    h+='<tr><td class="date-col tc">'+m.f+'</td><td class="match-col">'+fl(m.l)+sn(m.l)+' <span style="color:#475569">vs</span> '+fl(m.v)+sn(m.v)+'</td><td class="tc" style="font-weight:700">'+(res||'\\u2013')+'</td><td class="pred-col '+pc+'">'+(pred||'\\u2013')+'</td><td class="pts-col '+ptc+'">'+(pts!==null?pts:'\\u2013')+'</td></tr>';
   });
   document.getElementById('detTbl').innerHTML=h+'</tbody>';
   window.scrollTo(0,0);
@@ -1390,7 +1392,7 @@ function renderCmp(){
   let tb='<tbody>',ld='';
   PARTIDOS.forEach((m,i)=>{
     const res=ACTUALS[i]||'';
-    tb+='<tr><td class="date-c cmp-sc cmp-sc-0">'+m.f+'</td><td class="match-c cmp-sc cmp-sc-1">'+fl(m.l)+m.l+' <span style="color:#475569">vs</span> '+fl(m.v)+m.v+'</td><td class="res-c cmp-sc cmp-sc-2">'+(res||'\\u2013')+'</td>';
+    tb+='<tr><td class="date-c cmp-sc cmp-sc-0">'+m.f+'</td><td class="match-c cmp-sc cmp-sc-1">'+fl(m.l)+sn(m.l)+' <span style="color:#475569">vs</span> '+fl(m.v)+sn(m.v)+'</td><td class="res-c cmp-sc cmp-sc-2">'+(res||'\\u2013')+'</td>';
     ranked.forEach(r=>{const pred=r.pl.scores[i]||'',pts=calcPts(res,pred);const cl=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';const pl2=pts===3?'ex':pts===1?'co':pts===0?'wr':'';tb+='<td class="pred-c '+cl+'">'+(pred||'\\u2013')+'</td><td class="pts-c '+pl2+'">'+(pts!==null?pts:'\\u2013')+'</td>'});
     tb+='</tr>';
   });
