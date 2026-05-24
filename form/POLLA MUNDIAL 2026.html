@@ -726,7 +726,7 @@ renderMatches()
 // ── Tab: away → next home ─────────────────────────────────────────────────────
 document.getElementById('matchList').addEventListener('keydown', e => {
   if (e.key !== 'Tab' || e.shiftKey) return
-  const id = document.activeElement?.id
+  const id = document.activeElement && document.activeElement.id
   if (!id || !id.startsWith('v_')) return
   const next = document.getElementById(`l_${parseInt(id.slice(2)) + 1}`)
   if (next) { e.preventDefault(); next.focus() }
