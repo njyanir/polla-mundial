@@ -179,14 +179,16 @@
     .cmp-table tbody tr:hover td { filter: brightness(1.15) }
     .cmp-table td { padding: 6px 10px; color: white; vertical-align: middle; white-space: nowrap }
     .cmp-table td.date-c  { color: #475569; font-size: 10px; text-align: center; width: 52px }
-    .cmp-table td.match-c { font-weight: 600; min-width: 220px }
+    .cmp-table td.match-c { font-weight: 600; min-width: 100px; max-width: 120px; white-space: normal; line-height: 1.5 }
+    .m-home { display: block; font-size: 11px; color: #e2e8f0 }
+    .m-away { display: block; font-size: 11px; color: #64748b }
     .cmp-table td.res-c   { text-align: center; width: 80px }
 
     /* Sticky left columns */
     .cmp-sc { position: sticky; z-index: 2 }
     .cmp-sc-0 { left: 0 }
     .cmp-sc-1 { left: 52px }
-    .cmp-sc-2 { left: 272px; box-shadow: 3px 0 8px rgba(0,0,0,.5) }
+    .cmp-sc-2 { left: 152px; box-shadow: 3px 0 8px rgba(0,0,0,.5) }
     .cmp-table tbody tr td.cmp-sc   { background: #1e293b }
     .cmp-table tbody tr:hover td.cmp-sc { background: #263147 }
     .cmp-table .sep-c td.cmp-sc     { background: #0f172a }
@@ -1264,7 +1266,7 @@ td.em{color:#1e293b}
 .cmp-table td.em{color:#1e293b}
 .cmp-table .sep-c td{background:#080f1e;color:#f59e0b;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 10px;border-top:2px solid rgba(245,158,11,.1)}
 .cmp-sc{position:sticky;z-index:2}
-.cmp-sc-0{left:0}.cmp-sc-1{left:48px}.cmp-sc-2{left:140px;box-shadow:3px 0 10px rgba(0,0,0,.7)}
+.cmp-sc-0{left:0}.cmp-sc-1{left:48px}.cmp-sc-2{left:148px;box-shadow:3px 0 10px rgba(0,0,0,.7)}
 .cmp-table tbody tr td.cmp-sc{background:#0f172a}
 .cmp-table .sep-c td.cmp-sc{background:#080f1e}
 .cmp-table thead th.cmp-sc{background:#080f1e;z-index:7}
@@ -1484,7 +1486,7 @@ function renderCompare(){
     const res=actuals[i]||''
     tbody+=`<tr>
       <td class="date-c cmp-sc cmp-sc-0">${m.f}</td>
-      <td class="match-c cmp-sc cmp-sc-1">${fl(m.l)}${m.l} <span style="color:#475569">vs</span> ${fl(m.v)}${m.v}</td>
+      <td class="match-c cmp-sc cmp-sc-1"><span class="m-home">${fl(m.l)}${sn(m.l)}</span><span class="m-away">${fl(m.v)}${sn(m.v)}</span></td>
       <td class="res-c cmp-sc cmp-sc-2"><input class="cmp-res-input${res?' filled':''}" id="cri_${i}" value="${res}" placeholder="0-0" oninput="onCmpRes(${i},this.value)" onblur="onCmpResBlur(${i},this.value)"></td>`
     ranked.forEach(r=>{
       const pred=r.pl.scores[i]||''
