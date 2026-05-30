@@ -110,7 +110,22 @@
     .rank-gap { font-size: 10px; color: #475569; margin-top: 2px; font-weight: 600 }
 
     .tiebreak-note { font-size: 10px; color: #475569; text-align: center; padding: 8px 0 4px; font-style: italic }
-    .sp-info-strip { font-size: 10px; color: #94a3b8; margin: -4px 0 10px; text-align: center }
+    .sp-info-strip { font-size: 11px; color: #94a3b8; margin-left: 10px; font-weight: 500 }
+    .sp-table { border-collapse: collapse; width: 100%; font-size: 13px }
+    .sp-table thead th { background: #0a1628; color: #475569; padding: 8px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; text-align: left; border-bottom: 1px solid #162032 }
+    .sp-table tbody tr { border-bottom: 1px solid #162032; cursor: pointer; transition: background .15s }
+    .sp-table tbody tr:hover { background: #1e3048 }
+    .sp-table td { padding: 10px 14px; vertical-align: middle }
+    .sp-td-pos { font-size: 18px; text-align: center }
+    .sp-td-name { font-weight: 700; color: white }
+    .sp-td-name .sp-av-inline { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: white; margin-right: 8px; vertical-align: middle; flex-shrink: 0 }
+    .sp-td-pts { font-size: 20px; font-weight: 900; text-align: center }
+    .sp-td-ex { text-align: center; color: #4ade80; font-weight: 700 }
+    .sp-td-ok { text-align: center; color: #fb923c; font-weight: 700 }
+    .rename-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 4px; opacity: 0.5; transition: opacity .15s; line-height: 1 }
+    .rename-btn:hover { opacity: 1 }
+    .rank-rename { background: none; border: none; cursor: pointer; font-size: 12px; padding: 2px 5px; opacity: 0; color: #64748b; transition: opacity .15s; margin-left: auto; flex-shrink: 0 }
+    .rank-card:hover .rank-rename { opacity: 1 }
     .sp-checkpoint { background: #1a2a1a; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; border: 1px solid #1a3a1a }
     .sp-cp-lbl { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin-bottom: 3px }
     .sp-cp-val { font-size: 13px; font-weight: 700; color: #4ade80 }
@@ -362,34 +377,45 @@
 <div class="dash-body">
   <div class="dropzone" id="dz">
     <div class="icon">📂</div>
-    <div class="dz-title">Arrastra los Excel aquí</div>
-    <div class="dz-sub">o <label for="fi" class="browse">selecciona los archivos</label></div>
+    <div class="dz-title">Arrastra uno o varios Excel aquí</div>
+    <div class="dz-sub">o <label for="fi" class="browse">selecciona archivos</label> — puedes seleccionar varios a la vez</div>
   </div>
   <div class="empty-hint" id="emptyHint">Sube los archivos Excel para comenzar</div>
 
   <div class="dash-top" id="dashTop" style="display:none">
-    <!-- Ranking + Side Pot -->
+    <!-- Ranking -->
     <div class="dash-panel">
       <div class="dash-panel-hdr">🏅 Ranking</div>
       <div class="dash-panel-body">
-        <div class="score-cols">
-          <div class="score-main">
-            <div class="rank-list" id="rankList"></div>
-            <div class="tiebreak-note">Desempate: más exactos · luego más correctos</div>
-          </div>
-          <div class="score-side" id="spSection" style="display:none">
-            <div class="sp-hdr"><span>💰 Side Pot</span></div>
-            <div class="sp-info-strip" id="spInfoStrip"></div>
-            <div id="spCheckpoint"></div>
-            <div id="spList"></div>
-          </div>
-        </div>
+        <div class="rank-list" id="rankList"></div>
+        <div class="tiebreak-note">Desempate: más exactos · luego más correctos</div>
       </div>
     </div>
     <!-- Results -->
     <div class="dash-panel">
       <div class="dash-panel-hdr">⚽ Resultados</div>
       <div class="dash-results-body" id="resultsGrid"></div>
+    </div>
+  </div>
+
+  <!-- Side Pot panel (separate, full-width) -->
+  <div class="dash-panel dash-cmp" id="dashSidePot" style="display:none">
+    <div class="dash-panel-hdr">
+      💰 Side Pot
+      <span class="sp-info-strip" id="spInfoStrip"></span>
+    </div>
+    <div id="spCheckpoint" style="padding:8px 14px 0"></div>
+    <div style="overflow-x:auto">
+      <table class="sp-table" id="spTable">
+        <thead><tr>
+          <th style="width:40px">Pos</th>
+          <th>Jugador</th>
+          <th style="width:60px">Pts</th>
+          <th style="width:50px">Ex</th>
+          <th style="width:50px">Ok</th>
+        </tr></thead>
+        <tbody id="spList"></tbody>
+      </table>
     </div>
   </div>
 
@@ -412,9 +438,12 @@
   <div class="detail-hdr" id="detHdr" style="--dc:#3b82f6">
     <button class="back-btn" onclick="closeDetail()">← Volver</button>
     <div class="det-avatar" id="detAv"></div>
-    <div>
-      <div class="det-name" id="detName"></div>
-      <div class="det-sub"  id="detSub"></div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="det-name" id="detName"></div>
+        <button class="rename-btn" onclick="renamePlayer(openIdx)" title="Renombrar jugador">✏️</button>
+      </div>
+      <div class="det-sub" id="detSub"></div>
     </div>
     <div class="det-pts">
       <div class="det-pts-n" id="detPts"></div>
@@ -735,46 +764,45 @@ function renderScore(){
         <div class="rank-pts-lbl">pts</div>
         ${gap>0?`<div class="rank-gap">−${gap}</div>`:''}
       </div>
+      <button class="rank-rename" onclick="event.stopPropagation();renamePlayer(${r.j})" title="Renombrar">✏️</button>
     </div>`}).join('')
 
-  // Side Pot
+  // Side Pot — separate panel
   const sp=ranked.filter(r=>r.pl.sidePot)
-  const spSec=document.getElementById('spSection')
+  const spPanel=document.getElementById('dashSidePot')
   if(sp.length>0){
-    spSec.style.display=''
+    spPanel.style.display=''
     const spCount=sp.length
     document.getElementById('spInfoStrip').textContent=`${spCount} participante${spCount!==1?'s':''} · $500 por mitad`
 
-    // SP checkpoint (match 36 leader)
     const sp36=getSP36Leader()
     const finalSP=sp[0]
     let cpHtml=''
     if(sp36){
-      const isDouble = finalSP && sp36.pl.nombre===finalSP.pl.nombre
+      const isDouble=finalSP&&sp36.pl.nombre===finalSP.pl.nombre
       cpHtml=`<div class="sp-checkpoint">
         <div class="sp-cp-lbl">Líder Mitad 1 (Match 36)</div>
         <div class="sp-cp-val">${sp36.pl.nombre} — ${sp36.pts} pts${isDouble?'<span class="sp-double-badge">DOBLETE</span>':''}</div>
       </div>`
     } else {
-      cpHtml=`<div class="sp-checkpoint">
-        <div class="sp-cp-lbl">Líder Mitad 1 (Match 36)</div>
-        <div class="sp-cp-val sp-cp-pending">Pendiente</div>
-      </div>`
+      cpHtml=`<div class="sp-checkpoint"><div class="sp-cp-lbl">Líder Mitad 1 (Match 36)</div><div class="sp-cp-val sp-cp-pending">Pendiente</div></div>`
     }
     document.getElementById('spCheckpoint').innerHTML=cpHtml
 
+    const spMedals=['🥇','🥈','🥉']
     document.getElementById('spList').innerHTML=sp.map((r,i)=>`
-      <div class="sp-card" style="--c:${r.pl.color}" onclick="openDetail(${r.j})">
-        <div class="sp-pos">${medals[i]||'#'+(i+1)}</div>
-        <div class="sp-av">${initials(r.pl.nombre)}</div>
-        <div class="sp-info">
-          <div class="sp-name">${r.pl.nombre}</div>
-          <div class="sp-detail">${r.exact} ex · ${r.correct} ok</div>
-        </div>
-        <div class="sp-pts">${r.pts}</div>
-      </div>`).join('')
+      <tr onclick="openDetail(${r.j})" style="--c:${r.pl.color}">
+        <td class="sp-td-pos">${spMedals[i]||'#'+(i+1)}</td>
+        <td class="sp-td-name">
+          <span class="sp-av-inline" style="background:${r.pl.color}">${initials(r.pl.nombre)}</span>
+          ${r.pl.nombre}
+        </td>
+        <td class="sp-td-pts" style="color:${r.pl.color}">${r.pts}</td>
+        <td class="sp-td-ex">${r.exact}</td>
+        <td class="sp-td-ok">${r.correct}</td>
+      </tr>`).join('')
   } else {
-    spSec.style.display='none'
+    spPanel.style.display='none'
   }
 }
 
@@ -940,6 +968,21 @@ function openDetail(idx){
 function closeDetail(){
   openIdx=null
   document.getElementById('viewDetail').classList.remove('active')
+}
+
+// ── Rename player ──────────────────────────────────────────────────────────────
+function renamePlayer(idx){
+  if(idx===null||idx===undefined||!players[idx]) return
+  const current=players[idx].nombre
+  const newName=prompt('Nuevo nombre para el jugador:', current)
+  if(!newName||!newName.trim()||newName.trim()===current) return
+  players[idx].nombre=newName.trim()
+  savePlayers()
+  renderAll()
+  if(openIdx===idx){
+    document.getElementById('detName').textContent=players[idx].nombre
+  }
+  showMsg(`✏️ Renombrado a "${players[idx].nombre}"`, 'success')
 }
 
 function navDetail(dir){
