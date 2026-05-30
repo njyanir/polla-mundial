@@ -630,21 +630,24 @@ function readFile(file){
 
       let entryId='', submitted='', verifyCode='', scores=[]
 
+      // Helper: only keep values that look like a score (digits-digits)
+      const parseScore = raw => {
+        const s = (raw||'').toString().trim().replace(/\s*-\s*/,'-')
+        return /^\d{1,2}-\d{1,2}$/.test(s) ? s : ''
+      }
+
       if(isNewFormat){
         entryId=(ws['B6']?.v||'').toString().trim()
         submitted=(ws['B7']?.v||'').toString().trim()
         verifyCode=(ws['B8']?.v||'').toString().trim()
-        // Scores from rows 11-82 (0-indexed 10-81), col 3 (D) — row 9 is header
+        // Scan col D (index 3) for scores — skip any row that isn't a valid score
         for(let row=10;row<=81;row++){
-          const raw=ws[XLSX.utils.encode_cell({r:row,c:3})]?.v?.toString().trim()||''
-          scores.push(raw.replace(/(\d+)\s*-\s*(\d+)/g,'$1-$2'))
+          scores.push(parseScore(ws[XLSX.utils.encode_cell({r:row,c:3})]?.v))
         }
       } else {
-        // Old format: scores from rows 6-77 (0-indexed), col 2 (C)
-        // Row 5 (0-indexed) is the header, so start at row 6
+        // Old format: col C (index 2), rows 6-77
         for(let row=6;row<=77;row++){
-          const raw=ws[XLSX.utils.encode_cell({r:row,c:2})]?.v?.toString().trim()||''
-          scores.push(raw.replace(/(\d+)\s*-\s*(\d+)/g,'$1-$2'))
+          scores.push(parseScore(ws[XLSX.utils.encode_cell({r:row,c:2})]?.v))
         }
       }
 
