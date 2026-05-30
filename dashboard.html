@@ -1209,7 +1209,9 @@ td.em{color:#1e293b}
 .cmp-table tbody tr:last-child{border-bottom:none}
 .cmp-table td{padding:7px 10px;color:#e2e8f0;vertical-align:middle;white-space:nowrap}
 .cmp-table td.date-c{color:#334155;font-size:10px;text-align:center;width:48px}
-.cmp-table td.match-c{font-weight:600;min-width:130px;max-width:160px}
+.cmp-table td.match-c{font-weight:600;min-width:90px;max-width:110px;white-space:normal;line-height:1.5}
+.m-home{display:block;font-size:11px;color:#e2e8f0}
+.m-away{display:block;font-size:11px;color:#64748b}
 .cmp-table td.res-c{text-align:center;width:70px;font-weight:700}
 .cmp-table td.pred-c{text-align:center;font-weight:700;width:80px}
 .cmp-table td.pts-c{text-align:center;font-weight:800;width:34px;font-size:11px}
@@ -1219,7 +1221,7 @@ td.em{color:#1e293b}
 .cmp-table td.em{color:#1e293b}
 .cmp-table .sep-c td{background:#080f1e;color:#f59e0b;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 10px;border-top:2px solid rgba(245,158,11,.1)}
 .cmp-sc{position:sticky;z-index:2}
-.cmp-sc-0{left:0}.cmp-sc-1{left:48px}.cmp-sc-2{left:178px;box-shadow:3px 0 10px rgba(0,0,0,.7)}
+.cmp-sc-0{left:0}.cmp-sc-1{left:48px}.cmp-sc-2{left:140px;box-shadow:3px 0 10px rgba(0,0,0,.7)}
 .cmp-table tbody tr td.cmp-sc{background:#0f172a}
 .cmp-table .sep-c td.cmp-sc{background:#080f1e}
 .cmp-table thead th.cmp-sc{background:#080f1e;z-index:7}
@@ -1392,7 +1394,7 @@ function renderCmp(){
   let tb='<tbody>',ld='';
   PARTIDOS.forEach((m,i)=>{
     const res=ACTUALS[i]||'';
-    tb+='<tr><td class="date-c cmp-sc cmp-sc-0">'+m.f+'</td><td class="match-c cmp-sc cmp-sc-1">'+fl(m.l)+sn(m.l)+' <span style="color:#475569">vs</span> '+fl(m.v)+sn(m.v)+'</td><td class="res-c cmp-sc cmp-sc-2">'+(res||'\\u2013')+'</td>';
+    tb+='<tr><td class="date-c cmp-sc cmp-sc-0">'+m.f+'</td><td class="match-c cmp-sc cmp-sc-1"><span class="m-home">'+fl(m.l)+sn(m.l)+'</span><span class="m-away">'+fl(m.v)+sn(m.v)+'</span></td><td class="res-c cmp-sc cmp-sc-2">'+(res||'\\u2013')+'</td>';
     ranked.forEach(r=>{const pred=r.pl.scores[i]||'',pts=calcPts(res,pred);const cl=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';const pl2=pts===3?'ex':pts===1?'co':pts===0?'wr':'';tb+='<td class="pred-c '+cl+'">'+(pred||'\\u2013')+'</td><td class="pts-c '+pl2+'">'+(pts!==null?pts:'\\u2013')+'</td>'});
     tb+='</tr>';
   });
