@@ -634,8 +634,8 @@ function readFile(file){
         entryId=(ws['B6']?.v||'').toString().trim()
         submitted=(ws['B7']?.v||'').toString().trim()
         verifyCode=(ws['B8']?.v||'').toString().trim()
-        // Scores from rows 10-81 (0-indexed 9-80), col 3 (D)
-        for(let row=9;row<=80;row++){
+        // Scores from rows 11-82 (0-indexed 10-81), col 3 (D) — row 9 is header
+        for(let row=10;row<=81;row++){
           const raw=ws[XLSX.utils.encode_cell({r:row,c:3})]?.v?.toString().trim()||''
           scores.push(raw.replace(/(\d+)\s*-\s*(\d+)/g,'$1-$2'))
         }
