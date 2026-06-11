@@ -10,15 +10,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0 }
     body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #1e293b }
 
-    /* ── Locked banner ── */
-    #lockedBanner {
-      display: none; background: #7f1d1d; color: white;
-      padding: 13px 20px; text-align: center;
-      font-size: 15px; font-weight: 700;
-      position: sticky; top: 0; z-index: 100;
-      justify-content: center; align-items: center; gap: 8px;
-    }
-
     /* ── Mini progress strip ── */
     .mini-progress {
       position: sticky; top: 0; z-index: 99;
@@ -40,15 +31,6 @@
     header h1 { font-size: 22px; margin-bottom: 4px; letter-spacing: -.3px }
     @media(max-width:480px){ header h1 { font-size: 18px } }
     header p { font-size: 14px; color: #94a3b8 }
-    .countdown {
-      display: inline-flex; align-items: center; gap: 8px;
-      margin-top: 10px; background: rgba(255,255,255,.08);
-      border-radius: 8px; padding: 6px 14px; font-size: 13px; color: #94a3b8;
-    }
-    .countdown .time { color: white; font-weight: 700; font-variant-numeric: tabular-nums }
-    .countdown.urgent { background: rgba(239,68,68,.25) }
-    .countdown.urgent .time { color: #fca5a5 }
-
     /* ── Rules ── */
     .rules-wrap { max-width: 720px; margin: 16px auto 0; padding: 0 16px }
     .rules-toggle {
@@ -355,9 +337,6 @@
 </head>
 <body>
 
-<!-- Locked banner -->
-<div id="lockedBanner">⛔ Predicciones cerradas — El plazo venció el 10 de junio de 2026</div>
-
 <!-- Mini progress strip (sticky, just below header on scroll) -->
 <div class="mini-progress"><div class="mini-progress-fill" id="miniProgressFill"></div></div>
 
@@ -365,10 +344,6 @@
 <header>
   <h1>⚽ Polla Mundial 2026 <span style="font-size:13px;font-weight:600;opacity:.65;display:block;margin-top:3px;letter-spacing:.02em">versión OLD SCHOOL</span></h1>
   <p>Ingresa tus predicciones y descarga el archivo para enviarlo</p>
-  <div class="countdown" id="countdown">
-    <span>⏳ Tiempo restante:</span>
-    <span class="time" id="countdownTime">calculando…</span>
-  </div>
 </header>
 
 <!-- Rules -->
@@ -414,9 +389,6 @@
           <li><span class="tag tag-amber">Doble</span> Un jugador puede ganar ambos premios</li>
         </ul>
       </div>
-    </div>
-    <div class="rules-notice deadline">
-      ⏰ <strong>Fecha límite:</strong>&nbsp; Enviar antes del <strong>10 de junio</strong> — las predicciones enviadas después no serán válidas.
     </div>
     <div class="rules-notice contact" style="margin-top:8px">
       📲 <strong>Envío:</strong>&nbsp; Enviar el archivo al <strong>6672-2100</strong> por WhatsApp
@@ -511,10 +483,6 @@
 </div>
 
 <script>
-// ── Deadline & lock state ─────────────────────────────────────────────────────
-const DEADLINE = new Date(2026, 5, 10, 23, 59, 59)
-const LOCKED   = new Date() > DEADLINE
-
 // ── Rules toggle ──────────────────────────────────────────────────────────────
 function toggleRules() {
   const btn  = document.getElementById('rulesToggle')
@@ -533,22 +501,6 @@ function fmtDate(date) {
   var mi   = String(n.getMinutes()).padStart(2,'0')
   return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + mi
 }
-
-// ── Countdown ─────────────────────────────────────────────────────────────────
-function updateCountdown() {
-  const diff = DEADLINE - new Date()
-  const el   = document.getElementById('countdown')
-  const tel  = document.getElementById('countdownTime')
-  if (diff <= 0) { tel.textContent = '¡Plazo vencido!'; el.classList.add('urgent'); return }
-  const d = Math.floor(diff / 86400000)
-  const h = Math.floor((diff % 86400000) / 3600000)
-  const m = Math.floor((diff % 3600000)  / 60000)
-  const s = Math.floor((diff % 60000)    / 1000)
-  tel.textContent = d > 0 ? `${d}d ${h}h ${m}m ${s}s` : `${h}h ${m}m ${s}s`
-  if (diff < 3 * 86400000) el.classList.add('urgent')
-}
-updateCountdown()
-setInterval(updateCountdown, 1000)
 
 // ── Entry ID (persistent, localStorage-safe) ─────────────────────────────────
 function getEntryId() {
@@ -1052,16 +1004,6 @@ function descargarPDF() {
   }, 120)
 }
 
-// ── Lock form after deadline ──────────────────────────────────────────────────
-try {
-  if (LOCKED) {
-    document.getElementById('lockedBanner').style.display = 'flex'
-    document.querySelectorAll('input').forEach(function(el){ el.disabled = true })
-    document.getElementById('btnJumpNext').disabled = true
-    document.getElementById('btnClearAll').disabled = true
-    document.getElementById('btnDownload').disabled = true
-  }
-} catch(e) { console.error('lockForm failed:', e) }
 </script>
 
 </body>
