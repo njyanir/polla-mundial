@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Polla 2026">
+<title>🏆 Polla Mundial 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0f172a;color:white;min-height:100vh;padding-bottom:calc(64px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
+.hdr{background:#0f172a;border-bottom:1px solid #1e293b;padding:12px 16px 12px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
+.hdr-title{font-size:17px;font-weight:900;letter-spacing:.04em;flex:1}
+.hdr-badge{font-size:11px;color:#64748b;font-weight:600;flex-shrink:0}
+.hdr-ts{font-size:10px;color:#475569;width:100%;padding-top:2px}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#0a1628;border-top:1.5px solid #1e293b;display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:#475569;cursor:pointer;padding:9px 0 10px;min-height:56px}
+.bnav-btn.active{color:#f59e0b}
+.bnav-icon{font-size:22px;line-height:1}
+.bnav-label{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.view{display:none;padding:16px 14px 16px;max-width:640px;margin:0 auto}
+.view.active{display:block}
+#viewDetail{max-width:640px}
+#viewCompare{padding:0;max-width:none}
+#cmpWrap{display:flex;align-items:flex-start;overflow-y:auto;overflow-x:hidden;max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch}
+#cmpLeft{flex-shrink:0;overflow:hidden}
+#cmpRight{flex:1;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#cmpTL,#cmpTR{border-collapse:collapse;font-size:12px;white-space:nowrap}
+#cmpTL td,#cmpTL th,#cmpTR td,#cmpTR th{padding:7px 10px;vertical-align:middle;border-bottom:1px solid #0f172a}
+#cmpTL th,#cmpTR th{background:#0f172a;color:#64748b;font-size:9px;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;z-index:3}
+#cmpTL td{background:#1e293b;color:#e2e8f0}
+#cmpTR td{background:#1e293b;color:#e2e8f0}
+#cmpTL tr:last-child td,#cmpTR tr:last-child td{border-bottom:none}
+.cmpL-date{color:#475569;font-size:10px;width:50px;text-align:center}
+.cmpL-match{font-weight:600;min-width:160px}
+.cmpL-res{text-align:center;width:65px;font-weight:700}
+.cmp-sep td{background:#0f172a!important;color:#f59e0b;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 10px}
+.sb-sub{font-size:12px;color:#64748b;margin-bottom:12px;text-align:center}
+.rank-list{display:flex;flex-direction:column;gap:7px}
+.rank-card{display:flex;align-items:center;gap:12px;background:#1e293b;border-radius:14px;padding:12px 14px;cursor:pointer;border-left:5px solid var(--c);-webkit-tap-highlight-color:transparent}
+.rank-pos{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.rank-avatar{width:40px;height:40px;border-radius:50%;background:var(--c);color:white;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-detail{font-size:11px;color:#64748b;margin-top:2px}
+.rank-pts-wrap{text-align:right;flex-shrink:0}
+.rank-pts{font-size:26px;font-weight:900;color:var(--c);line-height:1}
+.rank-pts-lbl{font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.06em}
+.rank-arrow{color:#334155;font-size:18px;margin-left:4px}
+.score-cols{display:flex;gap:14px;align-items:flex-start}
+.score-main{flex:1;min-width:0}
+.det-hdr{display:flex;align-items:center;gap:12px;background:#1e293b;border-radius:14px;padding:14px 14px;margin-bottom:12px;border-left:5px solid var(--dc)}
+.back-btn{background:#0f172a;border:none;color:#94a3b8;padding:10px 14px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;min-height:44px}
+.det-avatar{width:44px;height:44px;border-radius:50%;background:var(--dc);color:white;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.det-name{font-size:17px;font-weight:800}
+.det-sub{font-size:12px;color:#64748b;margin-top:2px}
+.det-pts{margin-left:auto;text-align:right}
+.det-pts-n{font-size:28px;font-weight:900;color:var(--dc);line-height:1}
+.det-pts-l{font-size:10px;color:#475569;text-transform:uppercase}
+.det-nav{display:flex;gap:8px;margin-bottom:12px}
+.det-nav-btn{flex:1;background:#1e293b;border:none;color:#64748b;padding:12px 8px;border-radius:10px;font-size:18px;cursor:pointer;font-weight:700;min-height:48px}
+.det-nav-btn:active{background:#334155;color:white}
+.det-nav-btn:disabled{opacity:.3}
+.det-meta{background:#1e293b;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.det-meta-item label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#475569;display:block;margin-bottom:2px}
+.det-meta-item span{font-size:13px;font-weight:700;color:white}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.tbl-wrap{overflow-x:auto;border-radius:10px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13px;background:#1e293b;white-space:nowrap}
+thead th{background:#0f172a;color:#64748b;padding:8px 11px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0}
+thead th.l{text-align:left}
+thead th.c{text-align:center}
+tbody tr{border-bottom:1px solid #0f172a}
+tbody tr:last-child{border-bottom:none}
+td{padding:8px 11px;vertical-align:middle;color:white}
+td.tc{text-align:center}
+td.date-col{color:#475569;font-size:11px}
+td.match-col{font-weight:600;min-width:180px}
+td.pred-col{text-align:center;font-weight:700;min-width:65px}
+td.pts-col{text-align:center;font-weight:800;width:46px}
+td.ex{background:#052e16!important;color:#4ade80}
+td.co{background:#422006!important;color:#fb923c}
+td.wr{background:#450a0a!important;color:#f87171}
+td.em{color:#334155}
+.pts-ex{color:#4ade80}.pts-co{color:#fb923c}.pts-wr{color:#f87171}.pts-bl{color:#334155}
+.sep-row td{background:#0f172a;color:#f59e0b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:5px 11px}
+.cmp-scroll{overflow-x:auto;overflow-y:visible;width:100%;-webkit-overflow-scrolling:touch;position:relative}
+.cmp-table{border-collapse:collapse;font-size:12px;background:#1e293b;width:auto}
+.cmp-table thead th{background:#0f172a;color:#64748b;padding:7px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.cmp-table thead th.pl-hdr{background:var(--c);color:white;font-size:11px;font-weight:800;text-transform:none;letter-spacing:0;width:80px;min-width:80px;max-width:80px;cursor:pointer;white-space:normal;word-break:break-word;text-align:center;line-height:1.3;padding:8px 5px;vertical-align:middle}
+.cmp-table thead th.pl-hdr:active{opacity:.85}
+.cmp-table thead .pts-hdr{background:#0f172a;color:#475569;font-size:9px;width:34px}
+.cmp-table tbody tr{border-bottom:1px solid #0f172a}
+.cmp-table tbody tr:last-child{border-bottom:none}
+.cmp-table td{padding:7px 10px;color:white;vertical-align:middle;white-space:nowrap}
+.cmp-table td.date-c{color:#475569;font-size:10px;text-align:center;width:48px}
+.cmp-table td.match-c{font-weight:600;min-width:170px}
+.cmp-table td.res-c{text-align:center;width:70px;font-weight:700}
+.cmp-table td.pred-c{text-align:center;font-weight:700;width:80px}
+.cmp-table td.pts-c{text-align:center;font-weight:800;width:34px;font-size:11px}
+.cmp-table td.ex{background:#052e16;color:#4ade80}
+.cmp-table td.co{background:#422006;color:#fb923c}
+.cmp-table td.wr{background:#450a0a;color:#f87171}
+.cmp-table td.em{color:#334155}
+.cmp-table .sep-c td{background:#0f172a;color:#f59e0b;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 10px}
+.cmp-sc{position:relative;z-index:2;will-change:transform}
+.cmp-sc-0{left:0}.cmp-sc-1{left:48px}.cmp-sc-2{left:218px;box-shadow:3px 0 8px rgba(0,0,0,.5)}
+.cmp-table tbody tr td.cmp-sc{background:#1e293b}
+.cmp-table .sep-c td.cmp-sc{background:#0f172a}
+.cmp-table thead th.cmp-sc{background:#0f172a;z-index:7}
+.res-date-group{margin-bottom:16px}
+.res-date-lbl{font-size:11px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.08em;padding:6px 0 8px}
+.res-match-row{display:flex;align-items:center;gap:10px;background:#1e293b;border-radius:8px;padding:8px 12px;margin-bottom:4px}
+.res-teams{flex:1;font-size:13px;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.res-inp{width:62px;text-align:center;flex-shrink:0;background:#0f172a;border:1.5px solid #334155;border-radius:7px;color:white;font-size:13px;font-weight:700;padding:5px 4px;font-family:inherit}
+.res-inp:focus{outline:none;border-color:#3b82f6;background:#1e3a5f}
+.res-inp.filled{border-color:#16a34a;background:#052e16;color:#4ade80}
+.res-inp.invalid{border-color:#ef4444;background:#450a0a;color:#f87171}
+.upd-btn{background:#16a34a;color:white;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;flex-shrink:0;min-height:36px}
+.upd-btn:disabled{opacity:.6;cursor:wait}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-title">🏆 Polla 2026</div>
+  <div class="hdr-badge" id="hdrBadge">0/72 partidos · jueves, 11 de junio</div>
+  <button class="upd-btn" id="updBtn" onclick="fetchResults()">🔄 Actualizar</button>
+  <div class="hdr-ts" id="hdrTs">Actualizado: 11/06/2026, 13:02</div>
+</div>
+<div class="view active" id="viewScore">
+  <div class="sb-sub" id="sbSub"></div>
+  <div class="score-cols">
+    <div class="score-main">
+      <div class="rank-list" id="rankList"></div>
+    </div>
+  </div>
+</div>
+<div class="view" id="viewCompare">
+  <div id="cmpWrap">
+    <div id="cmpLeft"><table id="cmpTL"></table></div>
+    <div id="cmpRight"><table id="cmpTR"></table></div>
+  </div>
+</div>
+<div class="view" id="viewDetail">
+  <div class="det-hdr" id="detHdr" style="--dc:#3b82f6">
+    <button class="back-btn" onclick="goBack()">← Volver</button>
+    <div class="det-avatar" id="detAv"></div>
+    <div><div class="det-name" id="detName"></div><div class="det-sub" id="detSub"></div></div>
+    <div class="det-pts"><div class="det-pts-n" id="detPts"></div><div class="det-pts-l">pts</div></div>
+  </div>
+  <div class="det-meta" id="detMeta"></div>
+  <div class="det-nav">
+    <button class="det-nav-btn" id="prevBtn" onclick="nav(-1)">‹ Anterior</button>
+    <button class="det-nav-btn" id="nextBtn" onclick="nav(1)">Siguiente ›</button>
+  </div>
+  <div class="legend">
+    <span class="leg"><span class="leg-dot" style="background:#052e16;border:1px solid #4ade80"></span>Exacto (3)</span>
+    <span class="leg"><span class="leg-dot" style="background:#422006;border:1px solid #fb923c"></span>Correcto (1)</span>
+    <span class="leg"><span class="leg-dot" style="background:#450a0a;border:1px solid #f87171"></span>Incorrecto</span>
+  </div>
+  <div class="tbl-wrap"><table id="detTbl"></table></div>
+</div>
+<div class="view" id="viewRes"><div id="resGrid" style="padding:12px 14px 16px"></div></div>
+<nav class="bnav">
+  <button class="bnav-btn active" id="tS" onclick="sw('S')">
+    <span class="bnav-icon">🏅</span><span class="bnav-label">Ranking</span>
+  </button>
+  <button class="bnav-btn" id="tR" onclick="sw('R')">
+    <span class="bnav-icon">⚽</span><span class="bnav-label">Resultados</span>
+  </button>
+  <button class="bnav-btn" id="tC" onclick="sw('C')">
+    <span class="bnav-icon">📊</span><span class="bnav-label">Polla Completa</span>
+  </button>
+</nav>
+<script>
+const PLAYERS=[{"nombre":"Nir 1","color":"#3b82f6","scores":["2-0","1-1","2-1","2-0","0-2","1-2","2-1","0-2","1-1","5-0","2-1","2-0","1-2","4-0","2-0","2-0","2-0","0-3","3-1","3-0","2-1","2-0","3-0","0-2","2-0","2-1","3-0","2-1","4-0","0-1","1-1","2-1","2-1","3-0","2-0","0-2","3-0","3-0","3-0","0-1","1-1","4-0","2-0","0-2","2-0","1-2","4-0","2-1","0-2","3-0","1-1","2-0","1-1","0-2","0-2","1-2","1-1","0-2","1-1","2-1","1-2","2-0","1-1","0-3","1-2","1-2","0-2","1-1","1-1","0-3","1-2","2-1"],"entryId":"","verifyCode":"","celular":"66722100"},{"nombre":"Nir 2","color":"#10b981","scores":["1-1","2-1","1-0","2-2","0-2","0-2","2-1","1-2","2-1","3-1","1-1","0-1","1-2","2-0","2-1","1-2","1-1","1-2","2-1","1-0","2-1","1-1","2-0","2-2","1-0","3-1","1-2","2-1","3-0","2-2","2-0","1-1","2-1","1-0","1-1","1-2","2-1","2-0","1-2","2-2","2-1","2-0","1-1","2-2","2-1","0-1","2-1","1-1","1-3","2-1","2-2","1-0","2-1","1-2","1-3","2-2","2-1","1-2","2-2","1-1","2-1","1-1","2-2","1-2","2-1","1-2","1-3","2-2","1-0","1-2","2-1","2-2"],"entryId":"","verifyCode":"","celular":"66722100"},{"nombre":"Abraham E","color":"#f59e0b","scores":["2-0","2-1","0-1","1-2","0-3","0-2","2-2","0-2","1-1","4-0","1-1","2-0","0-3","4-0","0-3","1-1","2-1","0-2","2-1","0-0","3-1","1-1","1-0","1-2","0-0","2-1","2-1","2-0","4-0","2-2","1-2","2-0","3-0","2-0","1-1","0-0","2-0","3-0","2-0","0-2","1-1","3-0","2-0","1-1","2-2","0-3","2-0","1-2","1-2","3-0","1-1","2-0","0-2","0-0","0-1","1-3","1-1","0-2","1-1","2-0","1-3","3-0","1-1","1-1","1-1","2-2","0-3","1-1","1-1","0-3","0-0","0-0"],"entryId":"WC26-6713","verifyCode":"FC59L","celular":"66173105"},{"nombre":"ACEROOOOOOO","color":"#ef4444","scores":["1-0","1-1","2-0","1-0","0-1","0-1","2-1","0-2","1-1","3-0","2-1","2-0","0-2","3-0","0-0","3-1","2-1","0-2","2-0","2-0","2-0","2-1","3-0","0-2","1-0","2-0","1-0","1-1","3-0","1-1","1-0","1-0","2-1","1-1","2-1","0-2","2-0","3-0","2-0","0-1","1-1","2-0","1-0","0-0","2-0","0-3","3-0","1-0","1-1","2-1","1-1","0-0","1-1","0-1","1-1","1-2","1-1","0-2","0-1","1-1","0-2","2-0","2-1","0-2","0-0","0-2","3-0","2-0","0-1","0-2","1-2","1-1"],"entryId":"WC26-6409","verifyCode":"UCAU5","celular":"66779282"},{"nombre":"Alberto Cohen","color":"#8b5cf6","scores":["1-1","2-1","2-1","2-2","0-2","0-2","1-1","0-3","1-3","4-0","1-1","2-0","1-3","5-0","0-0","2-0","2-1","0-3","3-0","1-0","1-2","2-2","4-0","0-3","1-1","3-1","2-0","1-2","3-0","1-3","2-1","2-1","2-2","3-0","1-2","0-2","3-0","4-1","3-0","1-1","3-1","3-0","1-1","0-0","3-0","1-4","4-0","3-0","1-2","3-1","2-2","1-0","0-1","0-2","1-3","2-1","1-1","0-2","2-1","2-1","2-2","2-0","1-0","1-2","1-2","2-3","0-4","2-0","1-2","0-3","2-3","0-1"],"entryId":"WC26-3879","verifyCode":"2S749","celular":"+50760305000"},{"nombre":"Alberto Lalo","color":"#ec4899","scores":["4-1","2-1","3-2","2-0","2-4","1-3","0-0","1-2","0-2","4-0","4-1","1-0","0-3","8-0","2-0","2-2","1-0","0-5","2-0","0-1","2-3","2-1","1-0","2-5","1-0","3-0","1-0","1-2","4-0","2-3","1-0","1-1","3-2","5-0","2-0","1-2","6-0","3-1","2-2","0-3","4-1","2-0","2-1","0-3","5-2","1-2","3-1","4-0","2-5","4-3","2-1","1-0","2-2","0-1","0-2","1-1","2-1","3-2","1-2","2-4","3-3","1-0","2-1","0-4","2-3","0-1","3-4","3-1","2-1","1-5","1-1","0-2"],"entryId":"WC26-7207","verifyCode":"8GPEA","celular":"+507 68299606"},{"nombre":"Alberto Silvera","color":"#06b6d4","scores":["1-0","1-0","1-0","1-0","0-1","0-1","1-0","0-1","0-1","2-0","1-0","1-0","0-1","2-0","1-0","1-0","1-0","0-1","2-0","1-0","0-1","1-0","2-0","0-1","1-0","1-0","1-0","1-0","2-0","0-1","1-0","1-0","1-0","1-0","1-0","0-1","1-0","2-0","1-0","0-1","1-0","2-0","1-0","0-1","2-0","0-1","2-0","1-0","0-1","1-0","1-0","1-0","0-1","0-1","0-1","0-1","1-0","0-1","0-1","1-0","0-1","1-0","0-1","0-1","0-1","0-1","0-3","1-0","0-1","0-3","0-1","1-1"],"entryId":"WC26-6490","verifyCode":"6Q77A","celular":"+50766181058"},{"nombre":"Amiibos","color":"#84cc16","scores":["2-1","1-1","1-2","2-0","1-3","1-2","3-1","1-3","1-1","4-0","2-1","2-1","1-2","5-0","0-0","2-1","2-0","0-3","4-0","3-0","0-1","1-1","2-0","1-2","1-0","2-2","1-0","1-1","4-0","2-2","1-0","1-1","3-1","1-0","2-1","1-2","2-0","3-0","4-0","1-0","2-1","2-0","3-1","0-1","2-0","1-1","3-0","2-0","1-2","1-1","2-1","2-0","1-0","1-2","1-2","1-3","1-2","1-2","2-1","0-1","1-2","1-0","1-1","1-3","0-0","1-3","0-4","2-0","1-2","0-4","1-2","1-0"],"entryId":"WC26-8129","verifyCode":"X379W","celular":"60709060"},{"nombre":"Aviran","color":"#f97316","scores":["2-1","1-1","2-1","1-1","0-2","1-2","1-1","0-2","1-2","3-0","1-2","1-0","0-2","3-0","2-0","2-1","1-1","0-3","2-0","2-0","2-1","1-1","3-0","0-2","1-0","1-1","3-1","2-0","4-0","0-1","0-0","2-1","2-0","3-1","2-1","0-2","4-0","2-0","1-1","0-2","1-2","4-0","1-2","1-1","2-1","0-2","2-0","3-0","1-2","1-1","2-2","2-0","3-0","1-2","1-1","0-0","1-3","1-1","0-2","2-1","0-2","1-1","1-1","1-1","1-2","2-0","1-2","0-3","2-1","1-1","0-3","1-0"],"entryId":"","verifyCode":"","celular":"66735000"},{"nombre":"David M","color":"#6366f1","scores":["2-1","1-1","2-0","1-0","1-0","1-2","3-1","0-1","0-1","5-0","3-1","1-0","0-2","5-0","1-1","2-3","2-0","0-2","3-0","2-0","0-1","2-0","3-0","0-2","1-0","2-0","2-1","2-1","4-0","0-2","1-1","1-1","3-0","3-0","2-0","0-1","3-0","4-0","3-0","0-2","2-2","3-0","2-3","0-0","4-1","0-2","3-0","2-0","1-4","3-0","1-1","1-1","0-2","1-0","0-2","1-2","2-1","1-3","2-1","0-1","2-3","3-0","1-0","0-2","1-0","0-2","2-5","2-1","0-1","0-4","1-2","2-2"],"entryId":"WC26-4173","verifyCode":"YMNWW","celular":"+50764968864"},{"nombre":"Dr. Zhivago","color":"#14b8a6","scores":["2-0","0-1","1-0","1-0","0-2","0-1","2-0","0-2","1-1","4-0","1-1","1-0","1-1","4-0","0-0","2-1","3-1","0-2","2-0","1-0","1-0","2-1","3-0","0-1","1-0","2-0","1-0","1-1","3-0","1-2","2-1","2-0","2-0","1-0","2-1","0-1","1-0","3-1","2-0","0-1","2-1","3-0","2-1","1-1","2-0","0-2","4-0","2-0","0-3","2-0","1-1","1-1","1-1","1-2","0-2","0-2","1-1","1-2","1-1","1-0","1-2","1-0","1-0","0-2","0-1","0-2","0-4","1-0","0-1","0-2","1-2","0-0"],"entryId":"WC26-8026","verifyCode":"NNBQP","celular":"66156245"},{"nombre":"El Bikio","color":"#e11d48","scores":["2-0","2-1","2-0","1-1","0-3","0-2","2-1","1-3","0-1","5-0","2-1","1-1","0-1","5-0","2-0","1-0","3-2","0-2","2-0","2-0","2-0","2-0","3-1","0-2","1-0","2-0","2-0","1-1","4-1","0-2","1-1","1-0","2-0","2-1","1-0","0-1","2-0","2-0","1-1","0-2","1-1","3-0","1-1","0-1","3-1","0-2","4-0","2-0","1-2","2-0","2-1","1-0","1-2","1-1","0-2","1-2","2-0","0-2","1-0","1-0","1-3","2-1","2-1","1-3","1-1","1-2","0-4","1-1","1-1","0-3","1-2","1-0"],"entryId":"WC26-8055","verifyCode":"V59GP","celular":"63782082"},{"nombre":"El Campeon","color":"#64748b","scores":["1-0","1-1","1-0","0-0","0-3","1-2","2-1","0-2","1-1","5-0","2-0","1-0","0-3","3-0","0-1","3-0","3-1","0-2","2-0","2-0","0-1","1-0","2-0","0-2","1-1","1-0","1-0","1-1","3-0","1-1","0-0","1-0","2-0","1-0","1-0","0-1","3-0","3-0","2-0","1-0","0-1","5-0","1-0","0-0","1-0","0-3","3-0","1-0","0-2","2-0","1-1","1-0","1-0","0-2","0-3","1-3","0-1","0-2","0-1","1-0","0-1","0-0","2-0","0-3","0-0","0-1","0-3","1-0","0-1","0-3","0-1","1-0"],"entryId":"WC26-3547","verifyCode":"3BADD","celular":"67471300"},{"nombre":"El Fulo Martínez","color":"#0ea5e9","scores":["2-0","1-3","3-0","2-1","0-2","0-1","3-2","0-2","2-2","9-0","1-2","2-1","0-1","3-1","0-0","3-1","2-1","0-4","1-1","2-0","1-2","2-0","6-0","0-4","3-1","3-0","2-0","2-0","4-1","0-3","1-2","1-0","3-2","4-0","0-1","0-2","2-2","3-0","3-0","0-2","4-2","5-0","2-1","0-2","3-0","1-2","5-0","4-0","0-2","3-0","2-2","0-0","2-2","0-1","0-2","1-2","1-0","0-2","0-1","2-0","2-3","1-0","2-1","0-3","2-1","1-3","0-3","2-0","1-1","0-2","1-3","0-2"],"entryId":"WC26-5737","verifyCode":"AYNYW","celular":"66166681"},{"nombre":"Iky18","color":"#a855f7","scores":["1-0","0-0","1-1","2-1","0-1","0-0","3-1","0-1","1-2","3-0","2-1","1-0","0-1","3-0","0-0","2-1","3-2","0-2","1-0","1-0","1-1","2-1","3-0","0-1","1-0","2-0","1-0","1-0","5-1","1-1","0-0","2-1","3-1","3-0","2-0","0-2","2-0","4-1","3-0","0-1","1-0","4-0","2-0","0-1","3-1","0-2","2-0","2-1","1-2","2-1","1-0","1-0","0-0","0-1","0-1","1-2","1-1","0-3","1-2","0-0","1-1","1-0","1-0","0-2","0-1","0-1","1-4","1-0","0-0","0-3","1-1","0-0"],"entryId":"WC26-2535","verifyCode":"64K4S","celular":"66767661"},{"nombre":"Isaac Sfadia","color":"#22c55e","scores":["2-1","2-2","2-1","2-2","0-2","1-2","1-1","1-2","1-1","5-1","1-1","2-1","1-2","4-0","2-1","1-1","2-1","0-4","2-1","3-0","1-2","1-0","4-1","0-3","3-1","2-2","3-1","1-1","4-0","0-1","1-1","3-1","2-2","3-0","1-1","1-2","2-0","3-1","2-0","1-3","2-1","7-0","3-1","0-3","3-1","1-1","4-0","2-1","1-2","3-0","1-1","2-1","2-2","1-2","1-2","1-1","2-2","1-3","2-2","1-0","2-2","3-1","2-1","1-3","2-2","1-2","1-4","1-1","1-1","0-4","1-2","2-2"],"entryId":"WC26-4431","verifyCode":"WRS2N","celular":"65509196"},{"nombre":"Jacky Hayo","color":"#3b82f6","scores":["2-0","2-1","1-0","2-1","0-3","2-2","3-1","1-3","1-1","4-0","3-1","2-0","1-2","4-0","1-1","3-0","4-1","0-2","2-0","2-1","0-1","2-1","3-0","0-3","0-0","3-1","2-0","2-2","5-1","1-2","2-1","3-2","4-2","3-0","3-1","0-2","4-1","3-1","2-0","0-0","3-2","4-0","2-1","2-3","4-1","1-3","4-0","3-0","1-3","3-0","2-2","3-3","1-1","1-3","1-2","2-4","1-1","1-3","2-2","2-1","2-2","3-1","2-1","1-2","1-2","2-3","0-3","2-0","1-1","0-3","2-3","0-0"],"entryId":"WC26-1431","verifyCode":"643HQ","celular":"66166666"},{"nombre":"Jimmy Benzaquen","color":"#10b981","scores":["2-1","2-0","1-0","2-2","1-3","1-3","2-2","0-2","0-3","4-1","2-1","2-1","0-1","4-0","0-0","2-1","4-1","0-2","3-1","0-0","2-2","2-0","5-1","0-3","1-1","2-1","2-1","2-2","4-0","1-4","2-0","2-2","2-0","1-0","3-2","0-2","2-0","3-1","2-2","0-1","3-2","3-1","3-2","1-1","2-1","2-1","4-0","1-0","0-1","3-1","2-2","0-0","2-1","1-1","3-3","2-2","1-2","1-3","2-1","1-1","2-4","2-1","2-0","0-3","2-3","1-4","1-4","3-2","0-1","0-4","2-2","1-1"],"entryId":"WC26-7864","verifyCode":"SA97Q","celular":"+50765346502"},{"nombre":"Joel L","color":"#f59e0b","scores":["2-1","1-1","2-1","1-0","0-2","0-1","2-0","1-2","1-1","4-0","1-1","2-0","0-2","3-0","0-2","1-0","2-1","0-2","3-0","2-0","1-2","2-1","5-0","1-2","1-2","1-1","2-0","2-1","4-0","2-0","1-0","2-1","3-0","2-0","2-2","1-3","2-0","4-0","2-0","0-1","1-1","4-0","3-0","0-2","3-0","2-0","3-0","2-0","0-3","2-0","1-1","2-1","0-1","1-2","1-1","0-2","2-1","0-2","1-2","1-1","1-2","2-0","2-0","0-2","1-1","1-1","0-3","1-0","0-1","0-5","1-2","0-0"],"entryId":"WC26-1177","verifyCode":"6DU7D","celular":"+50766722494"},{"nombre":"Joel Akerman","color":"#ef4444","scores":["2-0","1-1","1-0","2-0","0-2","0-3","2-1","0-3","0-1","5-0","2-1","1-0","0-2","4-0","1-0","2-1","3-1","0-3","3-0","2-0","2-1","3-1","3-0","0-2","1-0","2-1","2-0","2-1","4-0","0-2","2-0","1-0","3-1","2-0","2-2","0-1","3-0","3-0","2-0","1-2","2-0","3-0","2-0","0-1","3-1","0-3","3-0","2-0","0-2","2-0","2-1","2-0","1-1","0-1","0-2","1-3","1-1","0-2","2-1","1-0","1-2","2-0","1-0","0-2","1-1","1-2","1-4","1-0","1-1","0-3","1-2","1-0"],"entryId":"WC26-1322","verifyCode":"PLQQV","celular":"+507 63788720"},{"nombre":"Jonathan ilarslan","color":"#8b5cf6","scores":["2-0","1-1","1-1","2-1","0-2","1-2","3-1","0-2","1-1","3-0","2-1","2-0","0-2","4-0","1-0","2-1","3-1","0-2","2-0","2-0","2-2","2-2","3-0","0-3","2-0","2-1","2-1","3-2","4-1","0-2","2-1","2-0","3-0","3-2","2-0","0-2","2-0","3-1","3-1","0-2","2-1","5-0","3-1","0-1","2-0","0-4","3-0","2-0","0-3","2-1","1-1","1-1","1-1","0-2","0-2","0-2","2-2","0-3","2-2","1-0","1-3","2-0","1-1","0-3","1-1","1-2","0-5","2-2","0-1","0-2","1-1","1-1"],"entryId":"WC26-7951","verifyCode":"QMBUL","celular":"+50766149044"},{"nombre":"Joseph","color":"#ec4899","scores":["2-0","1-1","2-1","2-1","0-2","0-2","2-1","0-2","1-2","4-0","2-2","2-0","0-2","3-0","2-1","2-0","2-1","0-2","3-1","2-0","3-1","1-1","3-0","1-2","2-0","1-0","3-1","2-1","3-0","0-1","1-1","2-0","3-0","2-0","3-1","0-2","2-0","3-0","2-0","1-2","2-2","4-0","2-0","1-2","3-1","0-4","3-0","2-1","1-3","2-0","1-1","2-0","2-2","0-2","1-3","1-3","2-0","0-3","2-2","1-0","1-3","2-0","2-1","0-3","1-1","1-3","1-5","3-1","2-2","0-3","1-3","1-1"],"entryId":"WC26-9472","verifyCode":"G34C9","celular":"66707206"},{"nombre":"Julio robles","color":"#06b6d4","scores":["2-1","0-2","2-0","1-1","0-2","1-1","3-1","0-2","1-1","3-0","3-1","2-1","0-2","3-0","1-0","2-1","2-0","0-1","2-0","1-1","1-2","2-1","3-0","0-2","1-0","2-0","2-1","1-0","4-0","0-1","2-1","1-1","3-1","2-0","2-1","0-1","2-0","3-1","3-1","0-2","2-1","3-0","2-0","1-1","3-0","1-1","3-0","2-0","1-3","2-0","1-1","0-1","1-1","1-1","0-1","1-3","0-1","1-3","1-1","1-2","0-2","1-0","1-1","0-3","1-2","1-3","1-2","1-0","1-1","0-2","2-3","1-1"],"entryId":"WC26-7186","verifyCode":"MALXA","celular":"62048618"},{"nombre":"La polla loka 🐥","color":"#84cc16","scores":["2-1","1-2","3-1","2-0","1-2","2-1","2-1","0-2","3-0","3-0","1-2","2-2","1-3","2-0","2-0","3-1","2-0","0-1","2-0","3-1","0-1","2-2","5-0","0-1","2-1","3-1","1-2","2-0","5-2","0-2","4-2","3-1","2-1","2-1","2-0","0-3","3-1","3-2","2-1","2-1","1-2","3-0","2-0","1-2","3-0","0-3","2-0","2-1","2-3","2-0","1-0","0-1","0-2","1-1","0-3","1-4","1-2","1-2","0-3","2-0","1-1","2-1","2-0","0-3","2-0","2-2","1-4","3-0","1-1","0-4","1-2","0-1"],"entryId":"WC26-4418","verifyCode":"XVPSJ","celular":"+18684627131"},{"nombre":"Leo marx","color":"#f97316","scores":["2-1","1-1","2-1","1-0","2-2","1-1","1-1","0-2","1-3","3-1","1-1","1-0","1-3","5-0","1-0","1-0","3-0","0-2","2-1","3-0","0-1","2-0","4-0","0-4","1-1","1-1","2-1","1-2","4-1","1-2","1-1","2-0","3-0","3-1","2-0","0-2","3-0","3-0","1-0","0-1","2-1","3-0","2-1","0-3","3-0","1-1","3-0","3-0","0-3","1-1","0-0","2-0","1-2","0-1","0-0","1-1","1-0","0-3","0-2","0-0","1-1","1-0","1-1","0-2","0-2","1-3","1-4","2-1","1-1","0-3","1-1","1-0"],"entryId":"WC26-1836","verifyCode":"ZNFH2","celular":"66157147"},{"nombre":"Leon Sasson","color":"#6366f1","scores":["2-0","1-1","2-0","2-1","0-2","1-2","2-1","0-2","0-1","3-0","2-1","2-0","0-2","3-0","2-1","2-1","2-0","0-2","2-0","2-0","1-1","2-1","3-0","0-2","2-1","2-0","3-0","1-0","4-0","1-2","1-1","1-0","2-1","2-0","2-0","0-1","2-0","4-0","2-1","1-1","2-2","3-0","1-1","0-2","3-1","1-2","2-0","2-1","0-2","3-1","0-0","1-1","1-2","0-2","0-2","0-0","1-0","0-2","1-1","0-0","1-3","2-0","0-1","0-3","1-1","1-2","0-2","2-0","0-1","0-2","1-1","0-0"],"entryId":"WC26-7372","verifyCode":"BFJ5C","celular":"+507 65505767"},{"nombre":"Los tigres","color":"#14b8a6","scores":["2-0","2-1","1-0","1-2","0-1","1-2","1-1","0-2","1-2","3-0","2-1","2-0","0-2","3-1","1-1","3-1","3-1","0-2","2-0","2-0","0-2","2-1","3-0","0-2","1-1","2-0","2-1","2-1","4-0","1-2","1-1","1-2","3-1","2-0","2-1","0-1","2-0","3-0","2-0","1-1","2-1","3-0","2-1","0-1","3-0","1-3","3-0","2-0","0-2","3-0","2-1","1-0","0-1","0-2","0-2","1-2","1-1","0-2","1-1","1-1","1-2","1-0","2-1","0-2","2-0","1-2","1-4","2-0","0-1","0-3","1-2","1-0"],"entryId":"WC26-2164","verifyCode":"XGFX6","celular":"62546949"},{"nombre":"M26","color":"#e11d48","scores":["2-1","0-1","1-0","2-1","0-2","0-1","2-1","0-2","1-2","4-0","1-0","2-0","0-1","3-0","0-1","2-0","2-0","0-2","2-0","2-0","1-0","1-0","3-0","0-2","1-0","2-0","2-1","2-1","4-0","1-2","0-1","1-0","2-1","1-0","2-0","0-2","2-0","2-0","3-0","0-1","2-1","3-0","2-0","0-1","2-1","1-2","3-0","2-0","0-2","3-0","1-1","2-1","1-1","0-1","0-2","0-2","1-2","0-2","0-1","2-0","1-2","2-0","2-0","0-2","0-2","0-2","0-3","1-0","0-2","0-3","1-2","0-1"],"entryId":"WC26-6983","verifyCode":"5DW23","celular":""},{"nombre":"Magno","color":"#64748b","scores":["2-0","2-1","2-0","3-0","1-2","1-1","3-1","0-1","1-0","4-0","3-2","1-1","1-2","4-0","1-1","3-2","3-1","1-4","2-1","1-1","1-1","2-3","3-0","1-2","1-1","3-1","2-1","1-2","3-0","1-2","0-1","2-1","2-1","1-2","3-2","1-2","3-0","4-1","2-1","1-2","3-1","2-0","3-1","1-2","3-1","0-4","3-0","3-1","1-3","1-0","1-1","2-1","2-1","1-2","0-1","0-4","1-1","1-2","1-1","2-1","2-3","1-1","1-0","0-2","1-3","1-2","0-4","2-0","1-1","0-2","1-2","2-1"],"entryId":"WC26-1927","verifyCode":"PRM9R","celular":"66709214"},{"nombre":"Maharishi","color":"#0ea5e9","scores":["1-0","1-1","0-0","2-0","0-1","2-1","2-0","0-1","1-1","3-0","2-1","1-0","0-2","3-0","1-0","2-0","2-1","0-1","2-0","2-0","1-1","2-1","2-0","0-2","0-0","1-0","1-0","2-2","3-0","0-1","1-1","2-0","2-0","1-0","1-1","0-1","2-0","3-0","2-1","0-1","1-1","3-0","3-1","0-1","2-0","0-2","3-0","2-0","0-2","2-0","1-1","1-0","0-1","1-2","0-2","1-2","1-1","0-2","1-1","1-0","1-2","2-0","1-1","0-3","0-0","1-2","1-4","1-1","1-1","0-3","1-2","1-1"],"entryId":"WC26-4083","verifyCode":"2T7B4","celular":"60907474"},{"nombre":"Messi","color":"#a855f7","scores":["2-0","1-1","2-1","1-0","0-1","1-1","2-0","0-2","1-1","3-0","1-1","1-0","0-2","3-0","1-0","2-1","2-1","0-2","2-0","2-0","2-1","1-1","3-0","0-2","1-0","1-1","2-0","2-1","4-0","0-0","1-1","2-0","2-1","2-0","1-1","0-2","3-0","3-0","1-0","0-1","1-1","4-0","2-1","0-1","2-0","1-2","2-0","2-0","0-2","3-0","1-0","2-1","1-2","0-2","0-2","0-2","1-1","0-2","1-2","0-0","1-2","2-0","2-0","0-3","1-0","1-1","0-4","2-0","1-2","0-3","1-2","1-1"],"entryId":"WC26-4351","verifyCode":"535R6","celular":"+507 66799000"},{"nombre":"Michael Gershon","color":"#22c55e","scores":["1-0","1-1","1-0","1-0","0-1","0-1","1-1","0-2","1-1","2-0","1-0","2-1","1-2","3-0","1-0","2-0","2-1","0-3","2-0","2-0","0-1","1-0","3-0","0-2","2-1","2-0","3-0","2-1","3-0","0-2","1-1","2-1","2-1","2-0","2-0","0-1","2-0","2-0","2-0","0-2","1-0","3-0","2-1","1-2","2-1","1-2","2-0","2-1","0-2","3-0","1-1","2-0","0-1","1-2","0-2","0-1","2-1","0-2","1-1","1-0","1-1","2-0","1-0","0-3","0-1","1-2","1-3","1-0","1-1","0-2","2-3","1-1"],"entryId":"WC26-5673","verifyCode":"QYCJZ","celular":"66729277"},{"nombre":"Michael Kubbany","color":"#3b82f6","scores":["2-1","1-1","2-1","2-1","0-2","1-1","3-1","0-2","2-1","4-0","3-0","2-0","0-2","3-0","0-2","3-0","3-0","0-3","3-0","1-0","1-1","2-2","3-0","1-2","1-1","2-1","2-1","2-1","4-0","3-0","1-1","2-1","3-1","1-1","3-2","1-2","2-1","4-0","4-0","2-0","3-0","4-0","3-0","1-1","3-0","1-3","3-1","2-1","1-3","2-1","2-2","1-1","1-2","1-1","0-2","0-3","1-2","1-3","1-2","1-1","1-2","1-1","1-0","1-2","1-0","1-3","1-4","3-0","0-2","0-3","1-2","0-1"],"entryId":"WC26-7725","verifyCode":"ATBLF","celular":"66736906"},{"nombre":"Nostradamus","color":"#10b981","scores":["2-0","1-2","2-1","1-0","2-1","1-1","2-1","0-1","2-1","4-0","2-0","2-0","0-1","3-0","0-0","2-2","2-0","1-4","2-0","1-0","1-2","1-0","4-0","1-2","2-1","1-2","2-0","1-1","2-0","0-1","0-2","3-1","2-1","3-1","3-2","1-2","3-0","4-0","2-0","0-1","2-1","3-1","1-0","0-1","2-0","1-3","3-0","2-0","1-3","2-1","1-1","2-0","1-2","1-2","0-2","1-2","2-3","0-2","0-1","2-1","2-2","1-0","3-1","0-2","1-1","1-2","1-4","2-0","0-1","0-2","1-2","1-2"],"entryId":"WC26-6972","verifyCode":"SZAEG","celular":"66709214"},{"nombre":"Omer Adam","color":"#f59e0b","scores":["2-0","0-1","1-0","1-1","0-2","0-1","3-1","0-2","1-0","4-0","1-0","1-0","0-1","4-0","0-1","3-0","3-0","0-2","2-0","1-0","0-0","2-1","3-0","0-2","1-1","1-0","1-0","1-0","3-0","1-1","1-0","1-0","2-0","2-0","1-0","1-1","3-0","2-0","2-0","1-0","1-0","3-0","2-0","0-1","2-0","1-3","3-0","2-0","1-3","1-0","0-1","0-1","0-1","0-1","0-1","0-2","1-1","0-1","0-1","0-1","0-1","1-0","1-0","0-1","0-2","1-1","1-2","1-0","0-1","0-2","0-1","0-0"],"entryId":"WC26-2367","verifyCode":"XSPNL","celular":""},{"nombre":"Oscar Ibarra","color":"#ef4444","scores":["2-0","1-1","2-1","2-1","1-2","0-3","2-2","1-2","0-2","3-0","1-1","1-0","0-2","4-0","1-1","2-0","3-0","1-3","3-0","2-0","1-2","2-1","3-0","1-3","2-2","2-2","2-0","2-1","3-1","1-2","2-1","2-1","3-0","2-0","2-1","2-1","3-0","3-0","2-1","2-2","2-1","3-0","3-0","1-1","2-1","2-2","3-0","2-0","0-3","2-1","2-2","2-1","1-2","1-2","1-2","2-2","2-1","0-2","2-1","2-1","2-3","2-1","2-3","1-2","1-1","1-3","1-4","2-1","0-1","0-4","2-2","1-2"],"entryId":"WC26-3686","verifyCode":"CWFK2","celular":"6611-1773"},{"nombre":"RayD","color":"#8b5cf6","scores":["3-0","2-1","1-0","2-0","0-2","1-1","2-1","0-1","0-2","3-0","2-1","2-0","0-3","4-0","0-1","2-1","3-0","0-1","2-0","1-1","1-1","2-2","3-0","1-2","1-1","2-0","2-0","3-1","4-0","1-1","1-1","2-1","3-1","2-1","2-2","2-2","2-0","3-1","3-0","2-2","2-1","3-1","2-0","1-1","2-0","1-3","3-1","2-1","1-3","2-0","2-2","2-2","1-2","2-3","1-2","1-3","1-2","0-2","0-2","1-1","2-3","3-1","2-0","1-3","1-1","2-2","0-4","2-0","0-2","0-4","2-2","0-0"],"entryId":"WC26-3993","verifyCode":"L47C6","celular":"66758998"},{"nombre":"Roy Naor","color":"#ec4899","scores":["2-1","0-2","1-0","0-0","0-2","1-2","1-0","0-3","0-2","4-0","1-1","1-0","1-2","4-0","0-0","2-0","3-1","0-2","2-0","1-1","2-1","0-0","3-0","0-3","2-1","2-0","1-0","2-0","3-0","1-2","1-1","1-2","3-1","2-0","2-0","1-2","3-0","2-1","1-1","1-0","2-1","3-0","1-0","0-0","2-1","0-2","3-0","4-0","1-3","2-0","1-1","0-1","1-0","1-2","0-1","2-2","2-1","1-3","2-1","1-2","2-3","2-0","1-0","0-1","0-1","1-2","0-2","1-1","1-0","0-2","2-3","1-1"],"entryId":"WC26-3009","verifyCode":"R2DXX","celular":"+50766123454"},{"nombre":"Salo & Izhak","color":"#06b6d4","scores":["3-1","2-2","2-1","2-1","0-3","1-2","3-1","0-0","2-3","5-0","2-2","2-1","0-2","4-1","1-1","2-1","4-2","1-2","3-0","2-1","2-1","2-1","3-1","1-3","2-1","2-1","2-1","1-0","5-0","1-3","1-1","2-1","3-1","2-0","1-0","1-2","2-0","3-1","4-1","1-2","1-2","4-0","2-1","0-0","3-1","0-2","3-0","2-0","1-3","3-1","1-1","2-0","1-2","0-2","1-2","1-3","2-2","1-3","1-1","2-1","1-3","2-1","2-0","0-3","0-1","0-1","0-4","1-0","0-2","0-3","1-1","0-1"],"entryId":"WC26-5550","verifyCode":"EZ5SG","celular":"62441212"},{"nombre":"Sasoneta","color":"#84cc16","scores":["2-0","1-0","1-2","1-2","0-2","1-2","2-0","1-3","1-1","3-0","2-0","1-0","0-2","3-0","2-0","2-1","2-1","0-0","2-0","2-0","1-1","1-1","3-1","0-2","2-1","2-1","2-0","1-1","3-0","1-0","2-0","2-1","2-0","2-1","1-1","0-2","2-1","2-0","1-1","0-2","1-1","2-0","2-0","1-2","3-1","0-2","2-0","2-1","0-2","3-0","1-1","2-1","1-2","0-2","0-2","1-2","1-1","0-2","1-1","1-1","1-1","2-0","1-1","0-2","1-1","1-2","0-2","2-1","1-1","0-3","1-1","1-1"],"entryId":"WC26-2159","verifyCode":"KMMR8","celular":"+50766129092"},{"nombre":"Shaked Cohen","color":"#f97316","scores":["2-0","2-1","3-1","3-1","0-2","1-2","3-1","1-1","0-2","4-0","3-1","1-1","0-2","6-0","1-1","2-1","3-1","0-3","4-0","1-1","1-2","2-1","3-0","0-2","0-0","2-1","2-1","2-1","3-0","1-2","2-2","3-1","3-1","3-1","4-2","2-2","4-1","4-1","4-1","1-2","3-1","4-0","3-1","1-1","3-0","1-3","3-1","3-1","1-4","3-0","1-2","1-2","1-2","1-2","1-2","2-1","2-1","1-3","1-2","0-1","2-3","2-0","2-0","0-2","0-2","0-2","1-4","3-0","0-1","0-4","1-1","0-0"],"entryId":"WC26-2228","verifyCode":"BCHNF","celular":"+50766991704"},{"nombre":"Victor Bettsack","color":"#6366f1","scores":["2-0","1-0","1-1","2-0","0-2","0-2","3-1","0-2","0-2","4-0","2-1","3-0","0-3","6-0","1-1","3-0","3-0","0-4","4-1","2-0","1-2","3-1","4-0","1-3","1-1","3-1","2-1","1-1","6-0","1-2","1-1","3-1","4-0","3-0","3-1","0-2","4-0","4-0","3-1","1-1","3-1","5-0","3-1","1-1","4-1","1-3","3-0","4-1","1-3","3-0","2-1","1-1","0-2","0-1","1-2","2-3","2-1","0-3","1-2","1-0","1-3","2-1","0-2","0-3","1-1","1-3","1-4","2-0","0-2","0-3","2-3","1-1"],"entryId":"WC26-8282","verifyCode":"HFH5Z","celular":"600043444"},{"nombre":"victor harari","color":"#14b8a6","scores":["2-1","1-0","2-0","1-0","0-2","1-1","2-1","0-2","1-3","4-0","2-1","2-1","1-3","4-0","1-1","2-0","2-1","0-2","3-0","2-0","1-2","2-1","4-0","1-3","2-1","3-1","3-1","1-2","4-0","1-2","1-0","1-2","2-1","3-0","2-1","0-2","4-0","3-1","3-1","1-1","1-0","3-0","3-1","1-1","2-0","1-1","4-0","3-0","1-2","3-0","2-1","1-1","1-0","0-1","0-2","2-1","2-1","1-3","1-1","0-1","2-1","2-1","1-1","1-3","1-1","2-2","2-1","2-1","1-2","1-3","1-2","0-0"],"entryId":"WC26-7087","verifyCode":"BZ6Y6","celular":"65237928"},{"nombre":"Yaniv Danon","color":"#e11d48","scores":["1-1","1-1","1-0","1-1","1-2","1-1","3-1","0-2","0-2","2-0","0-0","1-0","1-1","3-0","0-0","3-0","2-1","1-1","3-0","1-0","1-1","2-1","3-0","0-2","1-0","2-0","1-1","1-1","2-1","0-0","1-0","2-1","2-0","2-0","2-0","1-2","2-0","2-1","2-1","0-1","1-1","3-0","2-1","0-2","2-1","1-2","2-1","2-1","2-2","1-1","1-1","0-0","0-0","2-0","1-0","1-2","1-1","1-2","2-2","0-0","1-1","1-1","0-0","0-2","1-1","1-1","0-3","2-0","1-1","1-4","2-2","1-2"],"entryId":"WC26-5096","verifyCode":"9GXWD","celular":"66747447"},{"nombre":"Yoel Gimal","color":"#64748b","scores":["2-1","1-1","2-0","1-1","1-1","0-2","2-1","0-2","1-2","3-1","2-1","1-1","0-2","4-0","2-0","2-1","2-0","0-3","3-0","2-0","2-1","2-0","2-0","0-3","1-0","2-0","2-0","2-0","3-0","1-2","1-2","2-0","2-1","2-0","2-1","0-1","2-0","3-0","2-0","0-2","3-1","3-0","2-0","1-2","2-0","1-1","2-0","2-0","0-2","2-0","1-1","1-0","0-2","1-2","1-1","1-1","1-2","0-2","1-2","2-0","3-2","2-0","2-0","0-2","1-1","1-2","0-5","1-1","1-1","0-4","1-2","1-0"],"entryId":"WC26-3320","verifyCode":"5U9PE","celular":"62533884"}];
+var actuals=["","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""];
+try{var _ls=JSON.parse(localStorage.getItem('p26-actuals')||'null');if(_ls&&Array.isArray(_ls)&&_ls.length===72){var _ec=actuals.filter(function(a){return a}).length,_sc=_ls.filter(function(a){return a}).length;if(_sc>_ec)actuals=_ls}}catch(e){}
+const PARTIDOS=[{"f":"Jun 11","l":"MEXICO","v":"SOUTH AFRICA"},{"f":"Jun 11","l":"SOUTH KOREA","v":"CZECHIA"},{"f":"Jun 12","l":"CANADA","v":"BOSNIA AND HERZEGOVINA"},{"f":"Jun 12","l":"USA","v":"PARAGUAY"},{"f":"Jun 13","l":"HAITI","v":"SCOTLAND"},{"f":"Jun 13","l":"AUSTRALIA","v":"TURKIYE"},{"f":"Jun 13","l":"BRAZIL","v":"MOROCCO"},{"f":"Jun 13","l":"QATAR","v":"SWITZERLAND"},{"f":"Jun 14","l":"IVORY COAST","v":"ECUADOR"},{"f":"Jun 14","l":"GERMANY","v":"CURACAO"},{"f":"Jun 14","l":"NETHERLANDS","v":"JAPAN"},{"f":"Jun 14","l":"SWEDEN","v":"TUNISIA"},{"f":"Jun 15","l":"SAUDI ARABIA","v":"URUGUAY"},{"f":"Jun 15","l":"SPAIN","v":"CAPE VERDE"},{"f":"Jun 15","l":"IRAN","v":"NEW ZEALAND"},{"f":"Jun 15","l":"BELGIUM","v":"EGYPT"},{"f":"Jun 16","l":"FRANCE","v":"SENEGAL"},{"f":"Jun 16","l":"IRAQ","v":"NORWAY"},{"f":"Jun 16","l":"ARGENTINA","v":"ALGERIA"},{"f":"Jun 16","l":"AUSTRIA","v":"JORDAN"},{"f":"Jun 17","l":"GHANA","v":"PANAMA"},{"f":"Jun 17","l":"ENGLAND","v":"CROATIA"},{"f":"Jun 17","l":"PORTUGAL","v":"CONGO DR"},{"f":"Jun 17","l":"UZBEKISTAN","v":"COLOMBIA"},{"f":"Jun 18","l":"CZECHIA","v":"SOUTH AFRICA"},{"f":"Jun 18","l":"SWITZERLAND","v":"BOSNIA AND HERZEGOVINA"},{"f":"Jun 18","l":"CANADA","v":"QATAR"},{"f":"Jun 18","l":"MEXICO","v":"SOUTH KOREA"},{"f":"Jun 19","l":"BRAZIL","v":"HAITI"},{"f":"Jun 19","l":"SCOTLAND","v":"MOROCCO"},{"f":"Jun 19","l":"TURKIYE","v":"PARAGUAY"},{"f":"Jun 19","l":"USA","v":"AUSTRALIA"},{"f":"Jun 20","l":"GERMANY","v":"IVORY COAST"},{"f":"Jun 20","l":"ECUADOR","v":"CURACAO"},{"f":"Jun 20","l":"NETHERLANDS","v":"SWEDEN"},{"f":"Jun 20","l":"TUNISIA","v":"JAPAN"},{"f":"Jun 21","l":"URUGUAY","v":"CAPE VERDE"},{"f":"Jun 21","l":"SPAIN","v":"SAUDI ARABIA"},{"f":"Jun 21","l":"BELGIUM","v":"IRAN"},{"f":"Jun 21","l":"NEW ZEALAND","v":"EGYPT"},{"f":"Jun 22","l":"NORWAY","v":"SENEGAL"},{"f":"Jun 22","l":"FRANCE","v":"IRAQ"},{"f":"Jun 22","l":"ARGENTINA","v":"AUSTRIA"},{"f":"Jun 22","l":"JORDAN","v":"ALGERIA"},{"f":"Jun 23","l":"ENGLAND","v":"GHANA"},{"f":"Jun 23","l":"PANAMA","v":"CROATIA"},{"f":"Jun 23","l":"PORTUGAL","v":"UZBEKISTAN"},{"f":"Jun 23","l":"COLOMBIA","v":"CONGO DR"},{"f":"Jun 24","l":"SCOTLAND","v":"BRAZIL"},{"f":"Jun 24","l":"MOROCCO","v":"HAITI"},{"f":"Jun 24","l":"SWITZERLAND","v":"CANADA"},{"f":"Jun 24","l":"BOSNIA AND HERZEGOVINA","v":"QATAR"},{"f":"Jun 24","l":"CZECHIA","v":"MEXICO"},{"f":"Jun 24","l":"SOUTH AFRICA","v":"SOUTH KOREA"},{"f":"Jun 25","l":"CURACAO","v":"IVORY COAST"},{"f":"Jun 25","l":"ECUADOR","v":"GERMANY"},{"f":"Jun 25","l":"JAPAN","v":"SWEDEN"},{"f":"Jun 25","l":"TUNISIA","v":"NETHERLANDS"},{"f":"Jun 25","l":"TURKIYE","v":"USA"},{"f":"Jun 25","l":"PARAGUAY","v":"AUSTRALIA"},{"f":"Jun 26","l":"NORWAY","v":"FRANCE"},{"f":"Jun 26","l":"SENEGAL","v":"IRAQ"},{"f":"Jun 26","l":"EGYPT","v":"IRAN"},{"f":"Jun 26","l":"NEW ZEALAND","v":"BELGIUM"},{"f":"Jun 26","l":"CAPE VERDE","v":"SAUDI ARABIA"},{"f":"Jun 26","l":"URUGUAY","v":"SPAIN"},{"f":"Jun 27","l":"PANAMA","v":"ENGLAND"},{"f":"Jun 27","l":"CROATIA","v":"GHANA"},{"f":"Jun 27","l":"ALGERIA","v":"AUSTRIA"},{"f":"Jun 27","l":"JORDAN","v":"ARGENTINA"},{"f":"Jun 27","l":"COLOMBIA","v":"PORTUGAL"},{"f":"Jun 27","l":"CONGO DR","v":"UZBEKISTAN"}];
+const FLAGS={"MEXICO":"🇲🇽","SOUTH AFRICA":"🇿🇦","SOUTH KOREA":"🇰🇷","CZECHIA":"🇨🇿","CANADA":"🇨🇦","BOSNIA AND HERZEGOVINA":"🇧🇦","USA":"🇺🇸","PARAGUAY":"🇵🇾","HAITI":"🇭🇹","SCOTLAND":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","AUSTRALIA":"🇦🇺","TURKIYE":"🇹🇷","BRAZIL":"🇧🇷","MOROCCO":"🇲🇦","QATAR":"🇶🇦","SWITZERLAND":"🇨🇭","IVORY COAST":"🇨🇮","ECUADOR":"🇪🇨","GERMANY":"🇩🇪","CURACAO":"🇨🇼","NETHERLANDS":"🇳🇱","JAPAN":"🇯🇵","SWEDEN":"🇸🇪","TUNISIA":"🇹🇳","SAUDI ARABIA":"🇸🇦","URUGUAY":"🇺🇾","SPAIN":"🇪🇸","CAPE VERDE":"🇨🇻","IRAN":"🇮🇷","NEW ZEALAND":"🇳🇿","BELGIUM":"🇧🇪","EGYPT":"🇪🇬","FRANCE":"🇫🇷","SENEGAL":"🇸🇳","IRAQ":"🇮🇶","NORWAY":"🇳🇴","ARGENTINA":"🇦🇷","ALGERIA":"🇩🇿","AUSTRIA":"🇦🇹","JORDAN":"🇯🇴","GHANA":"🇬🇭","PANAMA":"🇵🇦","ENGLAND":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","CROATIA":"🇭🇷","PORTUGAL":"🇵🇹","CONGO DR":"🇨🇩","UZBEKISTAN":"🇺🇿","COLOMBIA":"🇨🇴"};
+var _bad=['score','match','date','time','time et','resultado','partido','fecha'];
+PLAYERS.forEach(function(pl){pl.scores=pl.scores.map(function(s){return _bad.indexOf((s||'').toString().trim().toLowerCase())>=0?'':s||''})});
+const MEDALS=['🥇','🥈','🥉'];
+const fl=t=>FLAGS[t]?FLAGS[t]+' ':'';
+const ini=n=>n.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const SHORT={'BOSNIA AND HERZEGOVINA':'Bosnia','SOUTH AFRICA':'S.Africa','SOUTH KOREA':'S.Korea','SAUDI ARABIA':'S.Arabia','IVORY COAST':'C.Ivoire','NEW ZEALAND':'NZ','CONGO DR':'Congo','CAPE VERDE':'C.Verde'};
+const sn=n=>SHORT[n]||(n.charAt(0)+n.slice(1).toLowerCase());
+function calcPts(a,p){if(!a||!p)return null;const nm=s=>s.trim().replace(/\s*-\s*/,'-');const an=nm(a),pn=nm(p);if(!an||!pn)return null;if(an===pn)return 3;const[al,av]=an.split('-').map(Number),[pl,pv]=pn.split('-').map(Number);if([al,av,pl,pv].some(isNaN))return null;return Math.sign(al-av)===Math.sign(pl-pv)?1:0}
+function stats(pl){let pts=0,ex=0,co=0;pl.scores.forEach((s,i)=>{const p=calcPts(actuals[i],s);if(p===3){pts+=3;ex++}else if(p===1){pts+=1;co++}});return{pts,ex,co}}
+function getRanked(){return PLAYERS.map((pl,j)=>({...stats(pl),pl,j})).sort((a,b)=>b.pts-a.pts||b.ex-a.ex||b.co-a.co)}
+var ranked=getRanked();
+let openIdx=null,prevTab='S';
+function sw(t){
+  prevTab=t;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.bnav').style.display='';
+  if(t==='S'){document.getElementById('viewScore').classList.add('active');document.getElementById('tS').classList.add('active')}
+  else if(t==='R'){document.getElementById('viewRes').classList.add('active');document.getElementById('tR').classList.add('active');renderRes()}
+  else{document.getElementById('viewCompare').classList.add('active');document.getElementById('tC').classList.add('active');renderCmp()}
+}
+function renderScore(){
+  ranked=getRanked();
+  document.getElementById('sbSub').textContent=actuals.filter(a=>a).length+' / 72 partidos jugados';
+  document.getElementById('rankList').innerHTML=ranked.map((r,rank)=>'<div class="rank-card" style="--c:'+r.pl.color+'" onclick="open2('+r.j+')">'+'<div class="rank-pos">'+(MEDALS[rank]||'#'+(rank+1))+'</div>'+'<div class="rank-avatar">'+ini(r.pl.nombre)+'</div>'+'<div class="rank-info"><div class="rank-name">'+r.pl.nombre+'</div><div class="rank-detail">'+r.ex+' exactos &middot; '+r.co+' correctos</div></div>'+'<div class="rank-pts-wrap"><div class="rank-pts">'+r.pts+'</div><div class="rank-pts-lbl">pts</div></div>'+'<div class="rank-arrow">›</div></div>').join('');
+}
+function open2(idx){
+  openIdx=idx;
+  const r=ranked.find(r=>r.j===idx),pl=r.pl,s=stats(pl),c=pl.color;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('viewDetail').classList.add('active');
+  document.querySelector('.bnav').style.display='none';
+  document.getElementById('detHdr').style.setProperty('--dc',c);
+  const av=document.getElementById('detAv');av.textContent=ini(pl.nombre);av.style.background=c;
+  document.getElementById('detName').value=pl.nombre;
+  document.getElementById('detSub').textContent=s.ex+' exactos \xb7 '+s.co+' correctos';
+  document.getElementById('detPts').textContent=s.pts;
+  const metaItems=[{label:'Entry ID',val:pl.entryId||'\u2014'},{label:'C\u00f3digo',val:pl.verifyCode||'\u2014'},{label:'Celular',val:pl.celular||'\u2014'},{label:'Enviado',val:'\u2014'}];
+  document.getElementById('detMeta').innerHTML=metaItems.map(m=>'<div class="det-meta-item"><label>'+m.label+'</label><span>'+m.val+'</span></div>').join('');
+  const pos=ranked.findIndex(r=>r.j===idx);
+  document.getElementById('prevBtn').disabled=pos<=0;
+  document.getElementById('nextBtn').disabled=pos>=ranked.length-1;
+  let h='<thead><tr><th class="l" style="width:50px">Fecha</th><th class="l">Partido</th><th class="c" style="width:72px">Resultado</th><th class="c" style="width:72px">Tu pron.</th><th class="c" style="width:42px">Pts</th></tr></thead><tbody>';
+  let ld='';
+  PARTIDOS.forEach((m,i)=>{
+    if(m.f!==ld){h+='<tr class="sep-row"><td colspan="5">'+m.f+'</td></tr>';ld=m.f}
+    const pred=pl.scores[i]||'',res=actuals[i]||'',pts=calcPts(res,pred);
+    const pc=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';
+    const ptc=pts===3?'pts-ex':pts===1?'pts-co':pts===0?'pts-wr':'pts-bl';
+    h+='<tr><td class="date-col tc">'+m.f+'</td><td class="match-col">'+fl(m.l)+m.l+' <span style="color:#475569">vs</span> '+fl(m.v)+m.v+'</td><td class="tc" style="font-weight:700">'+(res||'\u2013')+'</td><td class="pred-col '+pc+'">'+(pred||'\u2013')+'</td><td class="pts-col '+ptc+'">'+(pts!==null?pts:'\u2013')+'</td></tr>';
+  });
+  document.getElementById('detTbl').innerHTML=h+'</tbody>';
+  window.scrollTo(0,0);
+}
+function goBack(){
+  openIdx=null;
+  document.querySelector('.bnav').style.display='';
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  if(prevTab==='C'){document.getElementById('viewCompare').classList.add('active');document.getElementById('tC').classList.add('active')}
+  else if(prevTab==='R'){document.getElementById('viewRes').classList.add('active');document.getElementById('tR').classList.add('active');renderRes()}
+  else{document.getElementById('viewScore').classList.add('active');document.getElementById('tS').classList.add('active')}
+}
+function nav(dir){const pos=ranked.findIndex(r=>r.j===openIdx);const np=pos+dir;if(np<0||np>=ranked.length)return;open2(ranked[np].j)}
+function renderCmp(){
+  var thL='<thead><tr><th class="cmpL-date">Fecha</th><th class="cmpL-match">Partido</th><th class="cmpL-res">Res.</th></tr></thead><tbody>';
+  var thR='<thead><tr>';
+  ranked.forEach(r=>{thR+='<th style="background:'+r.pl.color+';color:white;padding:8px 10px;font-size:11px;font-weight:800;min-width:65px;text-align:center;cursor:pointer" onclick="open2('+r.j+')">'+r.pl.nombre+'</th><th style="color:'+r.pl.color+';width:34px;text-align:center">Pts</th>'});
+  thR+='</tr></thead><tbody>';
+  PARTIDOS.forEach((m,i)=>{
+    const res=actuals[i]||'';
+    const sepStyle='background:#0f172a;color:#f59e0b;font-size:9px;font-weight:800;text-transform:uppercase;padding:4px 10px;letter-spacing:.07em';
+    thL+='<tr><td class="cmpL-date">'+m.f+'</td><td class="cmpL-match">'+fl(m.l)+sn(m.l)+' <span style="color:#475569">vs</span> '+fl(m.v)+sn(m.v)+'</td><td class="cmpL-res">'+(res||'\u2013')+'</td></tr>';
+    thR+='<tr>';
+    ranked.forEach(r=>{const pred=r.pl.scores[i]||'',pts=calcPts(res,pred);const cl=pts===3?'ex':pts===1?'co':pts===0?'wr':pred?'':'em';const pc=pts===3?'ex':pts===1?'co':pts===0?'wr':'';thR+='<td class="pred-c '+cl+'" style="text-align:center;font-weight:700">'+(pred||'\u2013')+'</td><td class="pts-c '+pc+'" style="text-align:center;font-weight:800;font-size:11px">'+(pts!==null?pts:'\u2013')+'</td>'});
+    thR+='</tr>';
+  });
+  document.getElementById('cmpTL').innerHTML=thL+'</tbody>';
+  document.getElementById('cmpTR').innerHTML=thR+'</tbody>';
+}
+function isValid(s){return /^d{1,2}-d{1,2}$/.test(s.trim())}
+function normR(s){return s.trim().replace(/s*-s*/g,'-')}
+function onRes(i,val){
+  var n=normR(val),inp=document.getElementById('ri_'+i);
+  if(val===''){actuals[i]='';if(inp){inp.classList.remove('filled','invalid')}}
+  else if(isValid(n)){actuals[i]=n;if(inp){inp.classList.add('filled');inp.classList.remove('invalid')}}
+  else{if(inp)inp.classList.add('invalid');return}
+  try{localStorage.setItem('p26-actuals',JSON.stringify(actuals))}catch(e){}
+  renderScore();
+  if(document.getElementById('viewCompare').classList.contains('active'))renderCmp();
+}
+function onResBlur(i,val){
+  if(!val)return;
+  var n=normR(val),inp=document.getElementById('ri_'+i);
+  if(isValid(n)){if(inp){inp.value=n;inp.classList.remove('invalid')}onRes(i,n)}
+}
+function renderRes(){
+  var html='',ld='';
+  PARTIDOS.forEach(function(m,i){
+    if(m.f!==ld){if(ld)html+='</div>';html+='<div class="res-date-group"><div class="res-date-lbl">'+m.f+'</div>';ld=m.f}
+    var val=actuals[i]||'';
+    html+='<div class="res-match-row"><div class="res-teams">'+fl(m.l)+m.l+' <small>vs</small> '+fl(m.v)+m.v+'</div><input class="res-inp'+(val?' filled':'')+'" id="ri_'+i+'" value="'+val+'" placeholder="0-0" oninput="onRes('+i+',this.value)" onblur="onResBlur('+i+',this.value)"></div>';
+  });
+  if(ld)html+='</div>';
+  document.getElementById('resGrid').innerHTML=html;
+}
+var TEAM_FIX={'BOSNIA-HERZEGOVINA':'BOSNIA AND HERZEGOVINA','CURA\u00c7AO':'CURACAO','T\u00dcRKIYE':'TURKIYE','UNITED STATES':'USA','CZECH REPUBLIC':'CZECHIA','DR CONGO':'CONGO DR','COTE D\'IVOIRE':'IVORY COAST'};
+function tnorm(n){n=(n||'').toUpperCase().trim();return TEAM_FIX[n]||n}
+var PAIR_IDX={};
+PARTIDOS.forEach(function(m,i){PAIR_IDX[[m.l,m.v].slice().sort().join('|')]=i});
+function refreshViews(){
+  renderScore();
+  if(document.getElementById('viewCompare').classList.contains('active'))renderCmp();
+  if(document.getElementById('viewRes').classList.contains('active'))renderRes();
+  if(openIdx!==null&&document.getElementById('viewDetail').classList.contains('active'))open2(openIdx);
+}
+function fetchResults(){
+  var btn=document.getElementById('updBtn');
+  if(btn){btn.disabled=true;btn.textContent='\u23f3 Actualizando...'}
+  fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260628&limit=100')
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+  .then(function(d){
+    var updated=0;
+    (d.events||[]).forEach(function(e){
+      var c=e.competitions&&e.competitions[0];if(!c)return;
+      var st=c.status&&c.status.type;if(!st||!st.completed)return;
+      var home=null,away=null,hs=null,as=null;
+      (c.competitors||[]).forEach(function(t){
+        var nm=tnorm(t.team&&(t.team.displayName||t.team.name));
+        if(t.homeAway==='home'){home=nm;hs=t.score}else{away=nm;as=t.score}
+      });
+      if(!home||!away)return;
+      var idx=PAIR_IDX[[home,away].sort().join('|')];
+      if(idx===undefined)return;
+      var res=PARTIDOS[idx].l===home?hs+'-'+as:as+'-'+hs;
+      if(/^\d+-\d+$/.test(res)&&actuals[idx]!==res){actuals[idx]=res;updated++}
+    });
+    try{localStorage.setItem('p26-actuals',JSON.stringify(actuals))}catch(e){}
+    refreshViews();
+    var done=actuals.filter(function(a){return a}).length;
+    var badge=document.getElementById('hdrBadge');if(badge)badge.textContent=done+'/72 partidos';
+    var ts=document.getElementById('hdrTs');if(ts)ts.textContent='Actualizado: '+new Date().toLocaleString('es-ES');
+    if(btn){
+      btn.disabled=false;
+      btn.textContent=updated>0?'\u2713 '+updated+' resultado'+(updated!==1?'s':'')+' nuevo'+(updated!==1?'s':''):'\u2713 Al d\u00eda';
+      setTimeout(function(){btn.textContent='\ud83d\udd04 Actualizar'},3000);
+    }
+  })
+  .catch(function(){
+    if(btn){btn.disabled=false;btn.textContent='\u26a0\ufe0f Sin conexi\u00f3n';setTimeout(function(){btn.textContent='\ud83d\udd04 Actualizar'},3000)}
+  });
+}
+renderScore();
+fetchResults();
+setInterval(fetchResults,5*60*1000);
+</script>
+</body>
+</html>
